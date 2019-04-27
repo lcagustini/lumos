@@ -1,10 +1,10 @@
 /*****************************\
-* 	gba.h
-*	Original by eloist
-*	Modified by staringmonkey
-*   Modified by Uze
-*	Last modified on 29/11/2001
-\*****************************/
+ * 	gba.h
+ *	Original by eloist
+ *	Modified by staringmonkey
+ *   Modified by Uze
+ *	Last modified on 29/11/2001
+ \*****************************/
 
 //////////////////////////////////////////////////////////////////////////////
 // GBA.h                                                                    //
@@ -13,7 +13,6 @@
 #define	_GBA_H
 
 
- 
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
@@ -133,7 +132,7 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 
 #define SOUND3OUTPUT0		0x0000	// Mute output
 #define SOUND3OUTPUT1		0x2000	// Output unmodified
-#define SOUND3OUTPUT12		0x4000	// Output 1/2 
+#define SOUND3OUTPUT12		0x4000	// Output 1/2
 #define SOUND3OUTPUT14		0x6000	// Output 1/4 
 #define SOUND3OUTPUT34		0x8000  // Output 3/4
 
@@ -159,12 +158,12 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 
 /////////////////Registers/////////////////		
 #define REG_INTERUPT   *(u32*)0x3007FFC		//Interrupt Register
-#define REG_DISPCNT    *(u32*)0x4000000		//Display Control (Mode)
-#define REG_DISPCNT_L  *(u16*)0x4000000		//???
-#define REG_DISPCNT_H  *(u16*)0x4000002		//???
-#define REG_DISPSTAT   *(u16*)0x4000004		//???
+#define REG_DISPCNT    *(vu32*)0x4000000		//Display Control (Mode)
+#define REG_DISPCNT_L  *(vu16*)0x4000000		//???
+#define REG_DISPCNT_H  *(vu16*)0x4000002		//???
+#define REG_DISPSTAT   *(vu16*)0x4000004		//???
 #define REG_VCOUNT     *(vu16*)0x4000006		//Vertical Control (Sync)
-#define REG_BG0CNT     *(u16*)0x4000008		//Background 0
+#define REG_BG0CNT     *(vu16*)0x4000008		//Background 0
 #define REG_BG1CNT     *(u16*)0x400000A		//Background 1
 #define REG_BG2CNT     *(u16*)0x400000C		//Background 2
 #define REG_BG3CNT     *(u16*)0x400000E		//Background 3
@@ -262,45 +261,45 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define REG_SGFIFOB    *(vu32*)0x40000A4		//???
 #define REG_SGFIFOB_L  *(vu16*)0x40000A4		//???
 #define REG_SGFIFOB_H  *(vu16*)0x40000A6		//???
-#define REG_DMA0SAD     *(u32*)0x40000B0	//DMA0 Source Address
-#define REG_DMA0SAD_L   *(u16*)0x40000B0	//DMA0 Source Address Low Value
-#define REG_DMA0SAD_H   *(u16*)0x40000B2	//DMA0 Source Address High Value
-#define REG_DMA0DAD     *(u32*)0x40000B4	//DMA0 Destination Address
-#define REG_DMA0DAD_L   *(u16*)0x40000B4	//DMA0 Destination Address Low Value
-#define REG_DMA0DAD_H   *(u16*)0x40000B6	//DMA0 Destination Address High Value
-#define REG_DMA0CNT     *(u32*)0x40000B8	//DMA0 Control (Amount)
-#define REG_DMA0CNT_L   *(u16*)0x40000B8	//DMA0 Control Low Value
-#define REG_DMA0CNT_H   *(u16*)0x40000BA	//DMA0 Control High Value
+#define REG_DMA0SAD     *(vu32*)0x40000B0	//DMA0 Source Address
+#define REG_DMA0SAD_L   *(vu16*)0x40000B0	//DMA0 Source Address Low Value
+#define REG_DMA0SAD_H   *(vu16*)0x40000B2	//DMA0 Source Address High Value
+#define REG_DMA0DAD     *(vu32*)0x40000B4	//DMA0 Destination Address
+#define REG_DMA0DAD_L   *(vu16*)0x40000B4	//DMA0 Destination Address Low Value
+#define REG_DMA0DAD_H   *(vu16*)0x40000B6	//DMA0 Destination Address High Value
+#define REG_DMA0CNT     *(vu32*)0x40000B8	//DMA0 Control (Amount)
+#define REG_DMA0CNT_L   *(vu16*)0x40000B8	//DMA0 Control Low Value
+#define REG_DMA0CNT_H   *(vu16*)0x40000BA	//DMA0 Control High Value
 
-#define REG_DMA1SAD     *(u32*)0x40000BC	//DMA1 Source Address
-#define REG_DMA1SAD_L   *(u16*)0x40000BC	//DMA1 Source Address Low Value
-#define REG_DMA1SAD_H   *(u16*)0x40000BE	//DMA1 Source Address High Value
-#define REG_DMA1DAD     *(u32*)0x40000C0	//DMA1 Desination Address
-#define REG_DMA1DAD_L   *(u16*)0x40000C0	//DMA1 Destination Address Low Value
-#define REG_DMA1DAD_H   *(u16*)0x40000C2	//DMA1 Destination Address High Value
-#define REG_DMA1CNT     *(u32*)0x40000C4	//DMA1 Control (Amount)
-#define REG_DMA1CNT_L   *(u16*)0x40000C4	//DMA1 Control Low Value
-#define REG_DMA1CNT_H   *(u16*)0x40000C6	//DMA1 Control High Value
+#define REG_DMA1SAD     *(vu32*)0x40000BC	//DMA1 Source Address
+#define REG_DMA1SAD_L   *(vu16*)0x40000BC	//DMA1 Source Address Low Value
+#define REG_DMA1SAD_H   *(vu16*)0x40000BE	//DMA1 Source Address High Value
+#define REG_DMA1DAD     *(vu32*)0x40000C0	//DMA1 Desination Address
+#define REG_DMA1DAD_L   *(vu16*)0x40000C0	//DMA1 Destination Address Low Value
+#define REG_DMA1DAD_H   *(vu16*)0x40000C2	//DMA1 Destination Address High Value
+#define REG_DMA1CNT     *(vu32*)0x40000C4	//DMA1 Control (Amount)
+#define REG_DMA1CNT_L   *(vu16*)0x40000C4	//DMA1 Control Low Value
+#define REG_DMA1CNT_H   *(vu16*)0x40000C6	//DMA1 Control High Value
 
-#define REG_DMA2SAD     *(u32*)0x40000C8	//DMA2 Source Address
-#define REG_DMA2SAD_L   *(u16*)0x40000C8	//DMA2 Source Address Low Value
-#define REG_DMA2SAD_H   *(u16*)0x40000CA	//DMA2 Source Address High Value
-#define REG_DMA2DAD     *(u32*)0x40000CC	//DMA2 Destination Address
-#define REG_DMA2DAD_L   *(u16*)0x40000CC	//DMA2 Destination Address Low Value
-#define REG_DMA2DAD_H   *(u16*)0x40000CE	//DMA2 Destination Address High Value
-#define REG_DMA2CNT     *(u32*)0x40000D0	//DMA2 Control (Amount)
-#define REG_DMA2CNT_L   *(u16*)0x40000D0	//DMA2 Control Low Value
-#define REG_DMA2CNT_H   *(u16*)0x40000D2	//DMA2 Control High Value
+#define REG_DMA2SAD     *(vu32*)0x40000C8	//DMA2 Source Address
+#define REG_DMA2SAD_L   *(vu16*)0x40000C8	//DMA2 Source Address Low Value
+#define REG_DMA2SAD_H   *(vu16*)0x40000CA	//DMA2 Source Address High Value
+#define REG_DMA2DAD     *(vu32*)0x40000CC	//DMA2 Destination Address
+#define REG_DMA2DAD_L   *(vu16*)0x40000CC	//DMA2 Destination Address Low Value
+#define REG_DMA2DAD_H   *(vu16*)0x40000CE	//DMA2 Destination Address High Value
+#define REG_DMA2CNT     *(vu32*)0x40000D0	//DMA2 Control (Amount)
+#define REG_DMA2CNT_L   *(vu16*)0x40000D0	//DMA2 Control Low Value
+#define REG_DMA2CNT_H   *(vu16*)0x40000D2	//DMA2 Control High Value
 
-#define REG_DMA3SAD     *(u32*)0x40000D4	//DMA3 Source Address
-#define REG_DMA3SAD_L   *(u16*)0x40000D4	//DMA3 Source Address Low Value
-#define REG_DMA3SAD_H   *(u16*)0x40000D6	//DMA3 Source Address High Value
-#define REG_DMA3DAD     *(u32*)0x40000D8	//DMA3 Destination Address
-#define REG_DMA3DAD_L   *(u16*)0x40000D8	//DMA3 Destination Address Low Value
-#define REG_DMA3DAD_H   *(u16*)0x40000DA	//DMA3 Destination Address High Value
-#define REG_DMA3CNT     *(u32*)0x40000DC	//DMA3 Control (Amount)
-#define REG_DMA3CNT_L   *(u16*)0x40000DC	//DMA3 Control Low Value
-#define REG_DMA3CNT_H   *(u16*)0x40000DE	//DMA3 Control High Value
+#define REG_DMA3SAD     *(vu32*)0x40000D4	//DMA3 Source Address
+#define REG_DMA3SAD_L   *(vu16*)0x40000D4	//DMA3 Source Address Low Value
+#define REG_DMA3SAD_H   *(vu16*)0x40000D6	//DMA3 Source Address High Value
+#define REG_DMA3DAD     *(vu32*)0x40000D8	//DMA3 Destination Address
+#define REG_DMA3DAD_L   *(vu16*)0x40000D8	//DMA3 Destination Address Low Value
+#define REG_DMA3DAD_H   *(vu16*)0x40000DA	//DMA3 Destination Address High Value
+#define REG_DMA3CNT     *(vu32*)0x40000DC	//DMA3 Control (Amount)
+#define REG_DMA3CNT_L   *(vu16*)0x40000DC	//DMA3 Control Low Value
+#define REG_DMA3CNT_H   *(vu16*)0x40000DE	//DMA3 Control High Value
 
 #define REG_TM0CNT      *(u32*)0x4000100	//Timer 0
 #define REG_TM0CNT_L	*(u16*)0x4000100	//Timer 0 count value
@@ -348,5 +347,48 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 //}      /* extern "C" */
 //#endif
 
+#define OBJ_TILE_VRAM ((vu8*)0x6010000)
+#define OBJ_PALETTE_POINTER ((vu8*)0x5000200)
+#define OAM_ATTRIBS ((vu16*)0x7000000)
+
+#define BG_TILE_VRAM_BASE0 ((vu8*)0x6000000)
+#define BG_TILE_VRAM_BASE1 ((vu8*)0x6004000)
+#define BG_TILE_VRAM_BASE2 ((vu8*)0x6008000)
+#define BG_TILE_VRAM_BASE3 ((vu8*)0x600C000)
+
+#define BG_MAP_VRAM_BASE00 ((vu8*)0x6000000)
+#define BG_MAP_VRAM_BASE01 ((vu8*)0x6000800)
+#define BG_MAP_VRAM_BASE02 ((vu8*)0x6001000)
+#define BG_MAP_VRAM_BASE03 ((vu8*)0x6001800)
+#define BG_MAP_VRAM_BASE04 ((vu8*)0x6002000)
+#define BG_MAP_VRAM_BASE05 ((vu8*)0x6002800)
+#define BG_MAP_VRAM_BASE06 ((vu8*)0x6003000)
+#define BG_MAP_VRAM_BASE07 ((vu8*)0x6003800)
+#define BG_MAP_VRAM_BASE08 ((vu8*)0x6004000)
+#define BG_MAP_VRAM_BASE09 ((vu8*)0x6004800)
+#define BG_MAP_VRAM_BASE10 ((vu8*)0x6005000)
+#define BG_MAP_VRAM_BASE11 ((vu8*)0x6005800)
+#define BG_MAP_VRAM_BASE12 ((vu8*)0x6006000)
+#define BG_MAP_VRAM_BASE13 ((vu8*)0x6006800)
+#define BG_MAP_VRAM_BASE14 ((vu8*)0x6007000)
+#define BG_MAP_VRAM_BASE15 ((vu8*)0x6007800)
+#define BG_MAP_VRAM_BASE16 ((vu8*)0x6008000)
+#define BG_MAP_VRAM_BASE17 ((vu8*)0x6008800)
+#define BG_MAP_VRAM_BASE18 ((vu8*)0x6009000)
+#define BG_MAP_VRAM_BASE19 ((vu8*)0x6009800)
+#define BG_MAP_VRAM_BASE20 ((vu8*)0x600A000)
+#define BG_MAP_VRAM_BASE21 ((vu8*)0x600A800)
+#define BG_MAP_VRAM_BASE22 ((vu8*)0x600B000)
+#define BG_MAP_VRAM_BASE23 ((vu8*)0x600B800)
+#define BG_MAP_VRAM_BASE24 ((vu8*)0x600C000)
+#define BG_MAP_VRAM_BASE25 ((vu8*)0x600C800)
+#define BG_MAP_VRAM_BASE26 ((vu8*)0x600D000)
+#define BG_MAP_VRAM_BASE27 ((vu8*)0x600D800)
+#define BG_MAP_VRAM_BASE28 ((vu8*)0x600E000)
+#define BG_MAP_VRAM_BASE29 ((vu8*)0x600E800)
+#define BG_MAP_VRAM_BASE30 ((vu8*)0x600F000)
+#define BG_MAP_VRAM_BASE31 ((vu8*)0x600F800)
+
+#define BG_PALETTE_POINTER ((vu8*)0x5000000)
 
 #endif	// _GBA_H
