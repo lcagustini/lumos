@@ -162,11 +162,28 @@ void updateBullets() {
             OAM_ATTRIBS[321 + playerBulletsLen*4] = 0;
             OAM_ATTRIBS[322 + playerBulletsLen*4] = 0;
         }
+
+        for (int j = 0; j < monstersLen; j++) {
+            if(playerBullets[i].x < monsters[j].x + INTTOFP(16) &&
+                    playerBullets[i].x + INTTOFP(16) > monsters[j].x &&
+                    playerBullets[i].y < monsters[j].y + INTTOFP(16) &&
+                    playerBullets[i].y + INTTOFP(16) > monsters[j].y)
+            {
+                monsters[j].health--;
+            }
+        }
     }
 }
 
 void updateMonsters() {
     for (int i = 0; i < monstersLen; i++) {
+        if (monsters[i].health == 0) {
+            monsters[i] = monsters[--monstersLen];
+
+            OAM_ATTRIBS[5 + monstersLen*4] = 0;
+            OAM_ATTRIBS[6 + monstersLen*4] = 0;
+        }
+
         s32 dx = (s32)player.x - (s32)monsters[i].x;
         s32 dy = (s32)player.y - (s32)monsters[i].y;
 
