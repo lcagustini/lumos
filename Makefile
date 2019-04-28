@@ -39,6 +39,10 @@ gfx: force
 	grit gfx/patrono_1.png -o src/gfx/patrono_1
 	grit gfx/patrono_1_vert.png -o src/gfx/patrono_1_vert
 	grit gfx/patrono_2_vert.png -o src/gfx/patrono_2_vert
+	grit gfx/cachorro_1_hor.png -o src/gfx/cachorro_1_hor
+	grit gfx/cachorro_1_vert.png -o src/gfx/cachorro_1_vert
+	grit gfx/lontra_1_hor.png -o src/gfx/lontra_1_hor
+	grit gfx/lontra_1_vert.png -o src/gfx/lontra_1_vert
 	grit gfx/hud.png -o src/gfx/hud
 	grit gfx/vela_acesa_1.png -o src/gfx/vela_acesa_1
 	grit gfx/vela_acesa_2.png -o src/gfx/vela_acesa_2

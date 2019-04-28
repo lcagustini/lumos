@@ -9,6 +9,10 @@
 #include "gfx/lumos_1_45.h"
 #include "gfx/patrono_1.h"
 #include "gfx/patrono_1_vert.h"
+#include "gfx/cachorro_1_hor.h"
+#include "gfx/cachorro_1_vert.h"
+#include "gfx/lontra_1_hor.h"
+#include "gfx/lontra_1_vert.h"
 #include "gfx/hud.h"
 
 #include "gfx/vela_apagada_1.h"
@@ -858,7 +862,26 @@ reset_game:
             if (~REG_KEYPAD & (BUTTON_A|BUTTON_B)) {
                 if (playerBulletsLen < 10 && !player.bullet_timer && ((player.mana >= 5 && (~REG_KEYPAD & BUTTON_A)) || (player.mana > 50 && (~REG_KEYPAD & BUTTON_B)))) {
                     player.bullet_timer = 20;
-                    if (~REG_KEYPAD & BUTTON_B) player.mana -= 50;
+                    if (~REG_KEYPAD & BUTTON_B) {
+                        player.mana -= 50;
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*29, cachorro_1_horTiles, cachorro_1_horTilesLen/4);
+                                DMA3Copy(OBJ_TILE_VRAM + 32*53, cachorro_1_vertTiles, cachorro_1_vertTilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER + 160, cachorro_1_horPal, cachorro_1_horPalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*29, lontra_1_horTiles, lontra_1_horTilesLen/4);
+                                DMA3Copy(OBJ_TILE_VRAM + 32*53, lontra_1_vertTiles, lontra_1_vertTilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER + 160, lontra_1_horPal, lontra_1_horPalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*29, patrono_1Tiles, patrono_1TilesLen/4);
+                                DMA3Copy(OBJ_TILE_VRAM + 32*53, patrono_1_vertTiles, patrono_1_vertTilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1Pal, patrono_1PalLen/4);
+                                break;
+                        }
+                    }
                     else player.mana -= 5;
                     
                     playerBullets[playerBulletsLen].x = player.x;
