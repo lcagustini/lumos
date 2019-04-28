@@ -190,7 +190,7 @@ bool collidesWithOtherMonsters(u8 index) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -267,40 +267,79 @@ void drawGUI() {
     {
         s32 step = player.mana/10;
 
-        BG_MAP_VRAM_BASE24[2] = 2 | BIT13;
-        BG_MAP_VRAM_BASE24[3] = 3 | BIT13;
-        BG_MAP_VRAM_BASE24[4] = 3 | BIT13;
-        BG_MAP_VRAM_BASE24[5] = 3 | BIT13;
-        BG_MAP_VRAM_BASE24[6] = 2 | BIT10 | BIT13;
+        BG_MAP_VRAM_BASE24[34] = 2 | BIT13;
+        BG_MAP_VRAM_BASE24[35] = 3 | BIT13;
+        BG_MAP_VRAM_BASE24[36] = 3 | BIT13;
+        BG_MAP_VRAM_BASE24[37] = 3 | BIT13;
+        BG_MAP_VRAM_BASE24[38] = 2 | BIT10 | BIT13;
         if (step == 1) {
-            BG_MAP_VRAM_BASE24[2] = 12 | BIT13;
+            BG_MAP_VRAM_BASE24[34] = 12 | BIT13;
         }
         if (step > 1) {
-            BG_MAP_VRAM_BASE24[2] = 8 | BIT13;
+            BG_MAP_VRAM_BASE24[34] = 8 | BIT13;
         }
         if (step == 3) {
-            BG_MAP_VRAM_BASE24[3] = 15 | BIT13;
+            BG_MAP_VRAM_BASE24[35] = 15 | BIT13;
         }
         if (step > 3) {
-            BG_MAP_VRAM_BASE24[3] = 9 | BIT13;
+            BG_MAP_VRAM_BASE24[35] = 9 | BIT13;
         }
         if (step == 5) {
-            BG_MAP_VRAM_BASE24[4] = 11 | BIT13;
+            BG_MAP_VRAM_BASE24[36] = 11 | BIT13;
         }
         if (step > 5) {
-            BG_MAP_VRAM_BASE24[4] = 13 | BIT13;
+            BG_MAP_VRAM_BASE24[36] = 13 | BIT13;
         }
         if (step == 7) {
-            BG_MAP_VRAM_BASE24[5] = 6 | BIT13;
+            BG_MAP_VRAM_BASE24[37] = 6 | BIT13;
         }
         if (step > 7) {
-            BG_MAP_VRAM_BASE24[5] = 16 | BIT13;
+            BG_MAP_VRAM_BASE24[37] = 16 | BIT13;
         }
         if (step == 9) {
-            BG_MAP_VRAM_BASE24[6] = 7 | BIT13;
+            BG_MAP_VRAM_BASE24[38] = 7 | BIT13;
         }
         if (step > 9) {
-            BG_MAP_VRAM_BASE24[6] = 1 | BIT13;
+            BG_MAP_VRAM_BASE24[38] = 1 | BIT13;
+        }
+    }
+    {
+        s32 step = player.health/10;
+
+        BG_MAP_VRAM_BASE24[2] = 4 | BIT13;
+        BG_MAP_VRAM_BASE24[3] = 4 | BIT13;
+        BG_MAP_VRAM_BASE24[4] = 4 | BIT13;
+        BG_MAP_VRAM_BASE24[5] = 4 | BIT13;
+        BG_MAP_VRAM_BASE24[6] = 4 | BIT13;
+        if (step == 1) {
+            BG_MAP_VRAM_BASE24[2] = 10 | BIT13;
+        }
+        if (step > 1) {
+            BG_MAP_VRAM_BASE24[2] = 14 | BIT13;
+        }
+        if (step == 3) {
+            BG_MAP_VRAM_BASE24[3] = 10 | BIT13;
+        }
+        if (step > 3) {
+            BG_MAP_VRAM_BASE24[3] = 14 | BIT13;
+        }
+        if (step == 5) {
+            BG_MAP_VRAM_BASE24[4] = 10 | BIT13;
+        }
+        if (step > 5) {
+            BG_MAP_VRAM_BASE24[4] = 14 | BIT13;
+        }
+        if (step == 7) {
+            BG_MAP_VRAM_BASE24[5] = 10 | BIT13;
+        }
+        if (step > 7) {
+            BG_MAP_VRAM_BASE24[5] = 14 | BIT13;
+        }
+        if (step == 9) {
+            BG_MAP_VRAM_BASE24[6] = 10 | BIT13;
+        }
+        if (step > 9) {
+            BG_MAP_VRAM_BASE24[6] = 14 | BIT13;
         }
     }
 }
@@ -616,7 +655,7 @@ reset_game:
 
         if (player.bullet_timer) player.bullet_timer--;
         if (player.mana_timer) player.mana_timer--;
-        else if (monstersLen && player.mana < 50) {
+        else if (player.mana < 50) {
             player.mana_timer = 20;
             player.mana++;
         }
