@@ -1,13 +1,13 @@
 
-//{{BLOCK(bullet)
+//{{BLOCK(lumos)
 
 //======================================================================
 //
-//	bullet, 8x8@4, 
+//	lumos, 16x16@4, 
 //	Transparent color : FF,00,FF
 //	+ palette 16 entries, not compressed
-//	+ 1 tiles not compressed
-//	Total size: 32 + 32 = 64
+//	+ 4 tiles not compressed
+//	Total size: 32 + 128 = 160
 //
 //	Time-stamp: 2019-04-28, 02:09:47
 //	Exported by Cearn's GBA Image Transmogrifier, v0.8.15
@@ -15,15 +15,15 @@
 //
 //======================================================================
 
-#ifndef GRIT_BULLET_H
-#define GRIT_BULLET_H
+#ifndef GRIT_LUMOS_H
+#define GRIT_LUMOS_H
 
-#define bulletTilesLen 32
-extern const unsigned int bulletTiles[8];
+#define lumosTilesLen 128
+extern const unsigned int lumosTiles[32];
 
-#define bulletPalLen 32
-extern const unsigned short bulletPal[16];
+#define lumosPalLen 32
+extern const unsigned short lumosPal[16];
 
-#endif // GRIT_BULLET_H
+#endif // GRIT_LUMOS_H
 
-//}}BLOCK(bullet)
+//}}BLOCK(lumos)
