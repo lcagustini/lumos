@@ -38,6 +38,14 @@ gfx: force
 	grit gfx/vela_acesa_2.png -o src/gfx/vela_acesa_2
 	grit gfx/vela_apagada_1.png -o src/gfx/vela_apagada_1
 	grit gfx/vela_apagada_2.png -o src/gfx/vela_apagada_2
+	grit gfx/bk_1.png -o src/gfx/bk_1
+	grit gfx/bk_2.png -o src/gfx/bk_2
+	grit gfx/bk_3.png -o src/gfx/bk_3
+	grit gfx/bk_4.png -o src/gfx/bk_4
+	grit gfx/bk_5.png -o src/gfx/bk_5
+	grit gfx/doors_brown.png -o src/gfx/doors_brown
+	grit gfx/doors_red.png -o src/gfx/doors_red
+	grit gfx/doors_green.png -o src/gfx/doors_green
 
 clean:
 	rm -rf bin main.gba main.sav

@@ -8,6 +8,16 @@
 #include "gfx/patrono_1.h"
 #include "gfx/hud.h"
 
+#include "gfx/doors_red.h"
+#include "gfx/doors_green.h"
+#include "gfx/doors_brown.h"
+
+#include "gfx/bk_1.h"
+#include "gfx/bk_2.h"
+#include "gfx/bk_3.h"
+#include "gfx/bk_4.h"
+#include "gfx/bk_5.h"
+
 #include "gfx/vela_apagada_1.h"
 #include "gfx/vela_acesa_1.h"
 #include "gfx/vela_apagada_2.h"
@@ -111,8 +121,11 @@ u8 monstersLen;
 typedef enum {
     INVALID_ROOM = 0,
 
-    DEFAULT_ROOM,
-    DOOR_ROOM
+    BK_1,
+    BK_2,
+    BK_3,
+    BK_4,
+    BK_5,
 } RoomType;
 
 typedef struct {
@@ -319,79 +332,79 @@ void drawGUI() {
     {
         s32 step = player.mana/10;
 
-        BG_MAP_VRAM_BASE24[34] = 2 | BIT13;
-        BG_MAP_VRAM_BASE24[35] = 3 | BIT13;
-        BG_MAP_VRAM_BASE24[36] = 3 | BIT13;
-        BG_MAP_VRAM_BASE24[37] = 3 | BIT13;
-        BG_MAP_VRAM_BASE24[38] = 2 | BIT10 | BIT13;
+        BG_MAP_VRAM_BASE23[34] = 2 | BIT13;
+        BG_MAP_VRAM_BASE23[35] = 3 | BIT13;
+        BG_MAP_VRAM_BASE23[36] = 3 | BIT13;
+        BG_MAP_VRAM_BASE23[37] = 3 | BIT13;
+        BG_MAP_VRAM_BASE23[38] = 2 | BIT10 | BIT13;
         if (step == 1) {
-            BG_MAP_VRAM_BASE24[34] = 12 | BIT13;
+            BG_MAP_VRAM_BASE23[34] = 12 | BIT13;
         }
         if (step > 1) {
-            BG_MAP_VRAM_BASE24[34] = 8 | BIT13;
+            BG_MAP_VRAM_BASE23[34] = 8 | BIT13;
         }
         if (step == 3) {
-            BG_MAP_VRAM_BASE24[35] = 15 | BIT13;
+            BG_MAP_VRAM_BASE23[35] = 15 | BIT13;
         }
         if (step > 3) {
-            BG_MAP_VRAM_BASE24[35] = 9 | BIT13;
+            BG_MAP_VRAM_BASE23[35] = 9 | BIT13;
         }
         if (step == 5) {
-            BG_MAP_VRAM_BASE24[36] = 11 | BIT13;
+            BG_MAP_VRAM_BASE23[36] = 11 | BIT13;
         }
         if (step > 5) {
-            BG_MAP_VRAM_BASE24[36] = 13 | BIT13;
+            BG_MAP_VRAM_BASE23[36] = 13 | BIT13;
         }
         if (step == 7) {
-            BG_MAP_VRAM_BASE24[37] = 6 | BIT13;
+            BG_MAP_VRAM_BASE23[37] = 6 | BIT13;
         }
         if (step > 7) {
-            BG_MAP_VRAM_BASE24[37] = 16 | BIT13;
+            BG_MAP_VRAM_BASE23[37] = 16 | BIT13;
         }
         if (step == 9) {
-            BG_MAP_VRAM_BASE24[38] = 7 | BIT13;
+            BG_MAP_VRAM_BASE23[38] = 7 | BIT13;
         }
         if (step > 9) {
-            BG_MAP_VRAM_BASE24[38] = 1 | BIT13;
+            BG_MAP_VRAM_BASE23[38] = 1 | BIT13;
         }
     }
     {
         s32 step = player.health/10;
 
-        BG_MAP_VRAM_BASE24[2] = 4 | BIT13;
-        BG_MAP_VRAM_BASE24[3] = 4 | BIT13;
-        BG_MAP_VRAM_BASE24[4] = 4 | BIT13;
-        BG_MAP_VRAM_BASE24[5] = 4 | BIT13;
-        BG_MAP_VRAM_BASE24[6] = 4 | BIT13;
+        BG_MAP_VRAM_BASE23[2] = 4 | BIT13;
+        BG_MAP_VRAM_BASE23[3] = 4 | BIT13;
+        BG_MAP_VRAM_BASE23[4] = 4 | BIT13;
+        BG_MAP_VRAM_BASE23[5] = 4 | BIT13;
+        BG_MAP_VRAM_BASE23[6] = 4 | BIT13;
         if (step == 1) {
-            BG_MAP_VRAM_BASE24[2] = 10 | BIT13;
+            BG_MAP_VRAM_BASE23[2] = 10 | BIT13;
         }
         if (step > 1) {
-            BG_MAP_VRAM_BASE24[2] = 14 | BIT13;
+            BG_MAP_VRAM_BASE23[2] = 14 | BIT13;
         }
         if (step == 3) {
-            BG_MAP_VRAM_BASE24[3] = 10 | BIT13;
+            BG_MAP_VRAM_BASE23[3] = 10 | BIT13;
         }
         if (step > 3) {
-            BG_MAP_VRAM_BASE24[3] = 14 | BIT13;
+            BG_MAP_VRAM_BASE23[3] = 14 | BIT13;
         }
         if (step == 5) {
-            BG_MAP_VRAM_BASE24[4] = 10 | BIT13;
+            BG_MAP_VRAM_BASE23[4] = 10 | BIT13;
         }
         if (step > 5) {
-            BG_MAP_VRAM_BASE24[4] = 14 | BIT13;
+            BG_MAP_VRAM_BASE23[4] = 14 | BIT13;
         }
         if (step == 7) {
-            BG_MAP_VRAM_BASE24[5] = 10 | BIT13;
+            BG_MAP_VRAM_BASE23[5] = 10 | BIT13;
         }
         if (step > 7) {
-            BG_MAP_VRAM_BASE24[5] = 14 | BIT13;
+            BG_MAP_VRAM_BASE23[5] = 14 | BIT13;
         }
         if (step == 9) {
-            BG_MAP_VRAM_BASE24[6] = 10 | BIT13;
+            BG_MAP_VRAM_BASE23[6] = 10 | BIT13;
         }
         if (step > 9) {
-            BG_MAP_VRAM_BASE24[6] = 14 | BIT13;
+            BG_MAP_VRAM_BASE23[6] = 14 | BIT13;
         }
     }
 }
@@ -467,27 +480,50 @@ void changeRoom(Room r) {
     updateLights();
 }
 
-bool scroll(ScrollDir dir) {
-    switch (dir) {
-        case SCROLL_UP:
-            if (rooms[currentRoomY-1][currentRoomX].type != INVALID_ROOM) currentRoomY--;
-            else return false;
-            break;
-        case SCROLL_LEFT:
-            if (rooms[currentRoomY][currentRoomX-1].type != INVALID_ROOM) currentRoomX--;
-            else return false;
-            break;
-        case SCROLL_DOWN:
-            if (rooms[currentRoomY+1][currentRoomX].type != INVALID_ROOM) currentRoomY++;
-            else return false;
-            break;
-        case SCROLL_RIGHT:
-            if (rooms[currentRoomY][currentRoomX+1].type != INVALID_ROOM) currentRoomX++;
-            else return false;
-            break;
-        default:
-            assert(false);
+bool scroll(ScrollDir dir, bool force) {
+    if (!force) {
+        switch (dir) {
+            case SCROLL_UP:
+                if (rooms[currentRoomY-1][currentRoomX].type != INVALID_ROOM &&
+                        FPTOINT(player.x) >= 112 && FPTOINT(player.x) <= 128) currentRoomY--;
+                else return false;
+                break;
+            case SCROLL_LEFT:
+                if (rooms[currentRoomY][currentRoomX-1].type != INVALID_ROOM &&
+                        FPTOINT(player.y) >= 64 && FPTOINT(player.y) <= 80) currentRoomX--;
+                else return false;
+                break;
+            case SCROLL_DOWN:
+                if (rooms[currentRoomY+1][currentRoomX].type != INVALID_ROOM &&
+                        FPTOINT(player.x) >= 112 && FPTOINT(player.x) <= 128) currentRoomY++;
+                else return false;
+                break;
+            case SCROLL_RIGHT:
+                if (rooms[currentRoomY][currentRoomX+1].type != INVALID_ROOM &&
+                        FPTOINT(player.y) >= 64 && FPTOINT(player.y) <= 80) currentRoomX++;
+                else return false;
+                break;
+            default:
+                assert(false);
+        }
     }
+
+    BG_MAP_VRAM_BASE22[14+18*32] = 0;
+    BG_MAP_VRAM_BASE22[15+18*32] = 0;
+    BG_MAP_VRAM_BASE22[14+19*32] = 0;
+    BG_MAP_VRAM_BASE22[15+19*32] = 0;
+    BG_MAP_VRAM_BASE22[14] = 0;
+    BG_MAP_VRAM_BASE22[15] = 0;
+    BG_MAP_VRAM_BASE22[14+32] = 0;
+    BG_MAP_VRAM_BASE22[15+32] = 0;
+    BG_MAP_VRAM_BASE22[28+32*8] = 0;
+    BG_MAP_VRAM_BASE22[29+32*8] = 0;
+    BG_MAP_VRAM_BASE22[28+32*9] = 0;
+    BG_MAP_VRAM_BASE22[29+32*9] = 0;
+    BG_MAP_VRAM_BASE22[0+32*8] = 0;
+    BG_MAP_VRAM_BASE22[1+32*8] = 0;
+    BG_MAP_VRAM_BASE22[0+32*9] = 0;
+    BG_MAP_VRAM_BASE22[1+32*9] = 0;
 
     for (u8 i = 0; i < 4; i++) {
         OAM_ATTRIBS[240 + i*4] = 0;
@@ -512,56 +548,182 @@ bool scroll(ScrollDir dir) {
     switch (rooms[currentRoomX][currentRoomY].type) {
         case INVALID_ROOM:
             assert(false);
-        case DEFAULT_ROOM:
+        case BK_1:
             {
-                tilesLen = roomTilesLen/4;
-                mapLen = roomMapLen/4;
-                palLen = roomPalLen/4;
+                tilesLen = bk_1TilesLen/4;
+                mapLen = bk_1MapLen/4;
+                palLen = bk_1PalLen/4;
 
-                DMA3Copy(BG_TILE_VRAM_BASE1, roomTiles, tilesLen);
-                DMA3Copy(BG_MAP_VRAM_BASE17, roomMap, mapLen);
-                DMA3Copy(BG_PALETTE_POINTER + 32/2, roomPal, palLen);
-                for (int i = 1; i < palLen * 2; i++) {
-                    vu16* ptr = (BG_PALETTE_POINTER + 32/2 + i);
-                    u8 red = ((*ptr) & 0b0111110000000000) >> 10;
-                    u8 green = ((*ptr) & 0b1111100000) >> 5;
-                    u8 blue = (*ptr) & 0b11111;
-                    u16 reduction = 17;
-                    if (red < reduction) red = 0;
-                    else red -= reduction;
-                    if (green < reduction) green = 0;
-                    else green -= reduction;
-                    if (blue < reduction) blue = 0;
-                    else blue -= reduction;
-                    *ptr = (red << 10) | (green << 5) | blue;
+                DMA3Copy(BG_TILE_VRAM_BASE1, bk_1Tiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, bk_1Map, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 192/2, bk_1Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 224/2, bk_1Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_1Pal, palLen);
+                for (int j = 192; j <= 256; j+=32) {
+                    for (int i = 1; i < 2*palLen; i++) {
+                        vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
+                        u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                        u8 green = ((*ptr) & 0b1111100000) >> 5;
+                        u8 blue = (*ptr) & 0b11111;
+                        u16 reduction;
+                        if (j == 192) reduction = 3;
+                        if (j == 224) reduction = 6;
+                        if (j == 256) reduction = 10;
+                        if (red < reduction) red = 0;
+                        else red -= reduction;
+                        if (green < reduction) green = 0;
+                        else green -= reduction;
+                        if (blue < reduction) blue = 0;
+                        else blue -= reduction;
+                        *ptr = (red << 10) | (green << 5) | blue;
+                    }
                 }
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, BG_PALETTE_POINTER + 256/2, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_1Pal, palLen);
 
                 REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
             break;
-        case DOOR_ROOM:
+        case BK_2:
             {
-                tilesLen = room_doorTilesLen/4;
-                mapLen = room_doorMapLen/4;
-                palLen = room_doorPalLen/4;
+                tilesLen = bk_2TilesLen/4;
+                mapLen = bk_2MapLen/4;
+                palLen = bk_2PalLen/4;
 
-                DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, tilesLen);
-                DMA3Copy(BG_MAP_VRAM_BASE17, room_doorMap, mapLen);
-                DMA3Copy(BG_PALETTE_POINTER + 32/2, room_doorPal, palLen);
-                for (int i = 1; i < palLen * 2; i++) {
-                    vu16* ptr = (BG_PALETTE_POINTER + 32/2 + i);
-                    u8 red = ((*ptr) & 0b0111110000000000) >> 10;
-                    u8 green = ((*ptr) & 0b1111100000) >> 5;
-                    u8 blue = (*ptr) & 0b11111;
-                    u16 reduction = 17;
-                    if (red < reduction) red = 0;
-                    else red -= reduction;
-                    if (green < reduction) green = 0;
-                    else green -= reduction;
-                    if (blue < reduction) blue = 0;
-                    else blue -= reduction;
-                    *ptr = (red << 10) | (green << 5) | blue;
+                DMA3Copy(BG_TILE_VRAM_BASE1, bk_2Tiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, bk_2Map, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 192/2, bk_2Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 224/2, bk_2Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_2Pal, palLen);
+                for (int j = 192; j <= 256; j+=32) {
+                    for (int i = 1; i < 2*palLen; i++) {
+                        vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
+                        u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                        u8 green = ((*ptr) & 0b1111100000) >> 5;
+                        u8 blue = (*ptr) & 0b11111;
+                        u16 reduction;
+                        if (j == 192) reduction = 3;
+                        if (j == 224) reduction = 6;
+                        if (j == 256) reduction = 10;
+                        if (red < reduction) red = 0;
+                        else red -= reduction;
+                        if (green < reduction) green = 0;
+                        else green -= reduction;
+                        if (blue < reduction) blue = 0;
+                        else blue -= reduction;
+                        *ptr = (red << 10) | (green << 5) | blue;
+                    }
                 }
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, BG_PALETTE_POINTER + 256/2, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_2Pal, palLen);
+
+                REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
+            }
+            break;
+        case BK_3:
+            {
+                tilesLen = bk_3TilesLen/4;
+                mapLen = bk_3MapLen/4;
+                palLen = bk_3PalLen/4;
+
+                DMA3Copy(BG_TILE_VRAM_BASE1, bk_3Tiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, bk_3Map, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 192/2, bk_3Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 224/2, bk_3Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_3Pal, palLen);
+                for (int j = 192; j <= 256; j+=32) {
+                    for (int i = 1; i < 2*palLen; i++) {
+                        vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
+                        u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                        u8 green = ((*ptr) & 0b1111100000) >> 5;
+                        u8 blue = (*ptr) & 0b11111;
+                        u16 reduction;
+                        if (j == 192) reduction = 3;
+                        if (j == 224) reduction = 6;
+                        if (j == 256) reduction = 10;
+                        if (red < reduction) red = 0;
+                        else red -= reduction;
+                        if (green < reduction) green = 0;
+                        else green -= reduction;
+                        if (blue < reduction) blue = 0;
+                        else blue -= reduction;
+                        *ptr = (red << 10) | (green << 5) | blue;
+                    }
+                }
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, BG_PALETTE_POINTER + 256/2, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_3Pal, palLen);
+
+                REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
+            }
+            break;
+        case BK_4:
+            {
+                tilesLen = bk_4TilesLen/4;
+                mapLen = bk_4MapLen/4;
+                palLen = bk_4PalLen/4;
+
+                DMA3Copy(BG_TILE_VRAM_BASE1, bk_4Tiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, bk_4Map, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 192/2, bk_4Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 224/2, bk_4Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_4Pal, palLen);
+                for (int j = 192; j <= 256; j+=32) {
+                    for (int i = 1; i < 2*palLen; i++) {
+                        vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
+                        u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                        u8 green = ((*ptr) & 0b1111100000) >> 5;
+                        u8 blue = (*ptr) & 0b11111;
+                        u16 reduction;
+                        if (j == 192) reduction = 3;
+                        if (j == 224) reduction = 6;
+                        if (j == 256) reduction = 10;
+                        if (red < reduction) red = 0;
+                        else red -= reduction;
+                        if (green < reduction) green = 0;
+                        else green -= reduction;
+                        if (blue < reduction) blue = 0;
+                        else blue -= reduction;
+                        *ptr = (red << 10) | (green << 5) | blue;
+                    }
+                }
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, BG_PALETTE_POINTER + 256/2, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_4Pal, palLen);
+
+                REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
+            }
+            break;
+        case BK_5:
+            {
+                tilesLen = bk_5TilesLen/4;
+                mapLen = bk_5MapLen/4;
+                palLen = bk_5PalLen/4;
+
+                DMA3Copy(BG_TILE_VRAM_BASE1, bk_5Tiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, bk_5Map, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 192/2, bk_5Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 224/2, bk_5Pal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_5Pal, palLen);
+                for (int j = 192; j <= 256; j+=32) {
+                    for (int i = 1; i < 2*palLen; i++) {
+                        vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
+                        u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                        u8 green = ((*ptr) & 0b1111100000) >> 5;
+                        u8 blue = (*ptr) & 0b11111;
+                        u16 reduction;
+                        if (j == 192) reduction = 3;
+                        if (j == 224) reduction = 6;
+                        if (j == 256) reduction = 10;
+                        if (red < reduction) red = 0;
+                        else red -= reduction;
+                        if (green < reduction) green = 0;
+                        else green -= reduction;
+                        if (blue < reduction) blue = 0;
+                        else blue -= reduction;
+                        *ptr = (red << 10) | (green << 5) | blue;
+                    }
+                }
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, BG_PALETTE_POINTER + 256/2, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 256/2, bk_5Pal, palLen);
 
                 REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
@@ -644,12 +806,149 @@ bool scroll(ScrollDir dir) {
         DMA3Copy(BG_TILE_VRAM_BASE0, BG_TILE_VRAM_BASE1, tilesLen);
         DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE17, mapLen);
         DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32/2, palLen);
+        DMA3Copy(BG_PALETTE_POINTER + 96/2, BG_PALETTE_POINTER + 192/2, palLen);
+        DMA3Copy(BG_PALETTE_POINTER + 128/2, BG_PALETTE_POINTER + 224/2, palLen);
+        DMA3Copy(BG_PALETTE_POINTER + 160/2, BG_PALETTE_POINTER + 256/2, palLen);
 
         REG_BG0HOFS = 0;
         REG_BG0VOFS = 0;
 
         REG_BG1HOFS = 0;
         REG_BG1VOFS = 0;
+    }
+
+    switch (rooms[currentRoomY][currentRoomX].type) {
+        case BK_1:
+        case BK_2:
+        case BK_5:
+            DMA3Copy(BG_TILE_VRAM_BASE3, doors_brownTiles, doors_brownTilesLen/4);
+            DMA3Copy(BG_PALETTE_POINTER + 288/2, doors_brownPal, doors_brownPalLen/4);
+            break;
+        case BK_3:
+            DMA3Copy(BG_TILE_VRAM_BASE3, doors_greenTiles, doors_greenTilesLen/4);
+            DMA3Copy(BG_PALETTE_POINTER + 288/2, doors_greenPal, doors_greenPalLen/4);
+            break;
+        case BK_4:
+            DMA3Copy(BG_TILE_VRAM_BASE3, doors_redTiles, doors_redTilesLen/4);
+            DMA3Copy(BG_PALETTE_POINTER + 288/2, doors_redPal, doors_redPalLen/4);
+            break;
+    }
+
+    if (rooms[currentRoomY+1][currentRoomX].type != INVALID_ROOM) {
+        switch (rooms[currentRoomY][currentRoomX].type) {
+            case BK_1:
+            case BK_2:
+                BG_MAP_VRAM_BASE22[14+18*32] = 11 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+18*32] = 11  | BIT11 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+19*32] = 3  | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+19*32] = 4  | BIT11 | BIT12 | BIT15;
+                break;
+            case BK_3:
+                BG_MAP_VRAM_BASE22[14+18*32] = 1 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+18*32] = 2 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+19*32] = 3 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+19*32] = 4 | BIT12 | BIT15;
+                break;
+            case BK_4:
+                BG_MAP_VRAM_BASE22[14+18*32] = 5 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+18*32] = 6 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+19*32] = 1 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+19*32] = 2 | BIT11 | BIT12 | BIT15;
+                break;
+            case BK_5:
+                BG_MAP_VRAM_BASE22[14+18*32] = 9 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+18*32] = 10 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+19*32] = 1 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+19*32] = 2 | BIT11 | BIT12 | BIT15;
+                break;
+        }
+    }
+    if (rooms[currentRoomY-1][currentRoomX].type != INVALID_ROOM) {
+        switch (rooms[currentRoomY][currentRoomX].type) {
+            case BK_1:
+            case BK_2:
+                BG_MAP_VRAM_BASE22[14] = 3 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15] = 4 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+32] = 11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+32] = 11 | BIT10 | BIT12 | BIT15;
+                break;
+            case BK_3:
+                BG_MAP_VRAM_BASE22[14] = 3 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15] = 4 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+32] = 1 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+32] = 2 | BIT11 | BIT12 | BIT15;
+                break;
+            case BK_4:
+                BG_MAP_VRAM_BASE22[14] = 1 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15] = 2 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+32] = 5 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+32] = 6 | BIT12 | BIT15;
+                break;
+            case BK_5:
+                BG_MAP_VRAM_BASE22[14] = 1 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15] = 2 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[14+32] = 9 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[15+32] = 10 | BIT12 | BIT15;
+                break;
+        }
+    }
+    if (rooms[currentRoomY][currentRoomX+1].type != INVALID_ROOM) {
+        switch (rooms[currentRoomY][currentRoomX].type) {
+            case BK_1:
+            case BK_2:
+                BG_MAP_VRAM_BASE22[28+32*8] = 5 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*8] = 6 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[28+32*9] = 5 | BIT11 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*9] = 6 | BIT11 | BIT12 | BIT15;
+                break;
+            case BK_3:
+                BG_MAP_VRAM_BASE22[28+32*8] = 1 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*8] = 2 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[28+32*9] = 3 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*9] = 4 | BIT12 | BIT15;
+                break;
+            case BK_4:
+                BG_MAP_VRAM_BASE22[28+32*8] = 3 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*8] = 4 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[28+32*9] = 7 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*9] = 8 | BIT12 | BIT15;
+                break;
+            case BK_5:
+                BG_MAP_VRAM_BASE22[28+32*8] = 8 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*8] = 7 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[28+32*9] = 14 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[29+32*9] = 13 | BIT10 | BIT12 | BIT15;
+                break;
+        }
+    }
+    if (rooms[currentRoomY][currentRoomX-1].type != INVALID_ROOM) {
+        switch (rooms[currentRoomY][currentRoomX].type) {
+            case BK_1:
+            case BK_2:
+                BG_MAP_VRAM_BASE22[0+32*8] = 6 | BIT12 | BIT10 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*8] = 5 | BIT12 | BIT10 | BIT15;
+                BG_MAP_VRAM_BASE22[0+32*9] = 6 | BIT11 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*9] = 5 | BIT11 | BIT10 | BIT12 | BIT15;
+                break;
+            case BK_3:
+                BG_MAP_VRAM_BASE22[0+32*8] = 1 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*8] = 2 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[0+32*9] = 3 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*9] = 4 | BIT12 | BIT15;
+                break;
+            case BK_4:
+                BG_MAP_VRAM_BASE22[0+32*8] = 4 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*8] = 3 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[0+32*9] = 8 | BIT10 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*9] = 7 | BIT10 | BIT12 | BIT15;
+                break;
+            case BK_5:
+                BG_MAP_VRAM_BASE22[0+32*8] = 7 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*8] = 8 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[0+32*9] = 13 | BIT12 | BIT15;
+                BG_MAP_VRAM_BASE22[1+32*9] = 14 | BIT12 | BIT15;
+                break;
+        }
     }
 
     changeRoom(rooms[currentRoomY][currentRoomX]);
@@ -659,22 +958,22 @@ bool scroll(ScrollDir dir) {
 
 void generateRooms() {
     {
-        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2, {{70, 70, 1}, {20, 80, 1}, {160, 60, 1}, {80, 90, 1}}, 4 };
+        Room r = { BK_3, {{80, 50}, {80, 120}}, 2, {{70, 70, 1}, {20, 80, 1}, {160, 60, 1}, {80, 90, 1}}, 4 };
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{40, 20}, {80, 120}}, 2 };
+        Room r = { BK_3, {{40, 20}, {80, 120}}, 2 };
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{80, 10}, {180, 10}}, 2 };
+        Room r = { BK_3, {{80, 10}, {180, 10}}, 2 };
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X+1] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{100, 120}, {20, 20}, {70, 130}}, 3 };
+        Room r = { BK_3, {{100, 120}, {20, 20}, {70, 130}}, 3 };
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X+1] = r;
     }
 };
@@ -694,10 +993,27 @@ reset_game:
         frame = 0;
 
         memset((void*)OAM_ATTRIBS, 0, 128 * 4);
+
+        BG_MAP_VRAM_BASE22[14+18*32] = 0;
+        BG_MAP_VRAM_BASE22[15+18*32] = 0;
+        BG_MAP_VRAM_BASE22[14+19*32] = 0;
+        BG_MAP_VRAM_BASE22[15+19*32] = 0;
+        BG_MAP_VRAM_BASE22[14] = 0;
+        BG_MAP_VRAM_BASE22[15] = 0;
+        BG_MAP_VRAM_BASE22[14+32] = 0;
+        BG_MAP_VRAM_BASE22[15+32] = 0;
+        BG_MAP_VRAM_BASE22[28+32*8] = 0;
+        BG_MAP_VRAM_BASE22[29+32*8] = 0;
+        BG_MAP_VRAM_BASE22[28+32*9] = 0;
+        BG_MAP_VRAM_BASE22[29+32*9] = 0;
+        BG_MAP_VRAM_BASE22[0+32*8] = 0;
+        BG_MAP_VRAM_BASE22[1+32*8] = 0;
+        BG_MAP_VRAM_BASE22[0+32*9] = 0;
+        BG_MAP_VRAM_BASE22[1+32*9] = 0;
     }
 
 
-    REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT12; //Mode 0 + BG0-2 + OBJ + 1D OBJ Mapping
+    REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT11 | BIT12; //Mode 0 + BG0-3 + OBJ + 1D OBJ Mapping
 
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
@@ -723,22 +1039,25 @@ reset_game:
         OAM_ATTRIBS[1] = BIT14;
         OAM_ATTRIBS[2] = BIT00 | BIT10 | BIT11;
     }
+    {//Doors
+        REG_BG3CNT = BIT01 | BIT02 | BIT03 | BIT09 | BIT10 | BIT12;
+    }
     { //Room
-        DMA3Copy(BG_TILE_VRAM_BASE0, roomTiles, roomTilesLen/4);
-        DMA3Copy(BG_MAP_VRAM_BASE10, roomMap, roomMapLen/4);
-        DMA3Copy(BG_PALETTE_POINTER + 96/2, roomPal, roomPalLen/4);
-        DMA3Copy(BG_PALETTE_POINTER + 128/2, roomPal, roomPalLen/4);
-        DMA3Copy(BG_PALETTE_POINTER + 160/2, roomPal, roomPalLen/4);
+        DMA3Copy(BG_TILE_VRAM_BASE0, bk_1Tiles, bk_1TilesLen/4);
+        DMA3Copy(BG_MAP_VRAM_BASE10, bk_1Map, bk_1MapLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 96/2, bk_1Pal, bk_1PalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 128/2, bk_1Pal, bk_1PalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 160/2, bk_1Pal, bk_1PalLen/4);
         for (int j = 96; j <= 160; j+=32) {
-            for (int i = 1; i < roomPalLen/2; i++) {
+            for (int i = 1; i < bk_1PalLen/2; i++) {
                 vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
                 u8 red = ((*ptr) & 0b0111110000000000) >> 10;
                 u8 green = ((*ptr) & 0b1111100000) >> 5;
                 u8 blue = (*ptr) & 0b11111;
                 u16 reduction;
-                if (j == 96) reduction = 4;
-                if (j == 128) reduction = 9;
-                if (j == 160) reduction = 17;
+                if (j == 96) reduction = 3;
+                if (j == 128) reduction = 6;
+                if (j == 160) reduction = 10;
                 if (red < reduction) red = 0;
                 else red -= reduction;
                 if (green < reduction) green = 0;
@@ -748,8 +1067,8 @@ reset_game:
                 *ptr = (red << 10) | (green << 5) | blue;
             }
         }
-        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 160/2, roomPalLen/4);
-        DMA3Copy(BG_PALETTE_POINTER + 160/2, roomPal, roomPalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 160/2, bk_1PalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 160/2, bk_1Pal, bk_1PalLen/4);
 
         REG_BG0CNT = BIT00 | BIT01 | BIT09 | BIT11 | BIT14 | BIT15;
     }
@@ -773,12 +1092,15 @@ reset_game:
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
         DMA3Copy(BG_PALETTE_POINTER + 64/2, hudPal, hudPalLen/4);
 
-        REG_BG2CNT = BIT03 | BIT11 | BIT12;
+        REG_BG2CNT = BIT03 | BIT08 | BIT09 | BIT10 | BIT12;
     }
 
     generateRooms();
 
-    changeRoom(rooms[STARTING_ROOM_X][STARTING_ROOM_Y]);
+    //changeRoom(rooms[STARTING_ROOM_X][STARTING_ROOM_Y]);
+    REG_DISPCNT |= BIT07;
+    scroll(SCROLL_RIGHT, true);
+    REG_DISPCNT &= ~BIT07;
 
     while(1) {
         {
@@ -933,16 +1255,16 @@ reset_game:
         drawGUI();
 
         if (FPTOINT(player.x) <= FPTOINT(PLAYER_SPEED)) {
-            if (!scroll(SCROLL_LEFT)) player.x += PLAYER_SPEED;
+            if (!scroll(SCROLL_LEFT, false)) player.x += PLAYER_SPEED;
         }
         if (FPTOINT(player.x) >= (240-16-FPTOINT(PLAYER_SPEED))) {
-            if (!scroll(SCROLL_RIGHT)) player.x -= PLAYER_SPEED;
+            if (!scroll(SCROLL_RIGHT, false)) player.x -= PLAYER_SPEED;
         }
         if (FPTOINT(player.y) <= FPTOINT(PLAYER_SPEED)) {
-            if (!scroll(SCROLL_UP)) player.y += PLAYER_SPEED;
+            if (!scroll(SCROLL_UP, false)) player.y += PLAYER_SPEED;
         }
         if (FPTOINT(player.y) >= (160-16-FPTOINT(PLAYER_SPEED))) {
-            if (!scroll(SCROLL_DOWN)) player.y -= PLAYER_SPEED;
+            if (!scroll(SCROLL_DOWN, false)) player.y -= PLAYER_SPEED;
         }
 
         switch (player.dir) {
