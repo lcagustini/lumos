@@ -5,6 +5,8 @@
 #include "gfx/enemy.h"
 #include "gfx/enemy_2.h"
 #include "gfx/lumos.h"
+#include "gfx/lumos_vert.h"
+#include "gfx/lumos_1_45.h"
 #include "gfx/patrono_1.h"
 #include "gfx/hud.h"
 
@@ -753,9 +755,17 @@ reset_game:
 
         REG_BG0CNT = BIT00 | BIT01 | BIT09 | BIT11 | BIT14 | BIT15;
     }
-    { // Bullet
+    { // Bullet H
         DMA3Copy(OBJ_TILE_VRAM + 32*9, lumosTiles, lumosTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 64, lumosPal, lumosPalLen/4);
+    }
+    { // Bullet V
+        DMA3Copy(OBJ_TILE_VRAM + 32*45, lumos_vertTiles, lumos_vertTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 64, lumos_vertPal, lumos_vertPalLen/4);
+    }
+    { // Bullet D
+        DMA3Copy(OBJ_TILE_VRAM + 32*49, lumos_1_45Tiles, lumos_1_45TilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 64, lumos_1_45Pal, lumos_1_45PalLen/4);
     }
     { //Candle
         DMA3Copy(OBJ_TILE_VRAM + 32*13, vela_apagada_1Tiles, vela_apagada_1TilesLen/4);
@@ -845,7 +855,7 @@ reset_game:
                     player.bullet_timer = 20;
                     if (~REG_KEYPAD & BUTTON_B) player.mana -= 50;
                     else player.mana -= 5;
-
+                    
                     playerBullets[playerBulletsLen].x = player.x;
                     playerBullets[playerBulletsLen].y = player.y;
                     if (dir) {
@@ -1110,8 +1120,38 @@ reset_game:
                 OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
             } else {
                 OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
-                OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
-                OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+                if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT12 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_RIGHT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if ((playerBullets[i].dir & BULLET_DOWN) && (playerBullets[i].dir & BULLET_LEFT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT12;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if ((playerBullets[i].dir & BULLET_DOWN) && (playerBullets[i].dir & BULLET_RIGHT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_DOWN) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                    OAM_ATTRIBS[322 + i*4] = 45 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_UP) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 45 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_LEFT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT12;
+                    OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_RIGHT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                    OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+                }
             }
         }
 
