@@ -133,7 +133,7 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define SOUND3OUTPUT0		0x0000	// Mute output
 #define SOUND3OUTPUT1		0x2000	// Output unmodified
 #define SOUND3OUTPUT12		0x4000	// Output 1/2
-#define SOUND3OUTPUT14		0x6000	// Output 1/4 
+#define SOUND3OUTPUT14		0x6000	// Output 1/4
 #define SOUND3OUTPUT34		0x8000  // Output 3/4
 
 #define SOUND3PLAYONCE		0x4000	// Play sound once
@@ -156,7 +156,7 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define SOUND4PLAYLOOP		0x0000
 #define SOUND4INIT			0x8000
 
-/////////////////Registers/////////////////		
+/////////////////Registers/////////////////
 #define REG_INTERUPT   *(u32*)0x3007FFC		//Interrupt Register
 #define REG_DISPCNT    *(vu32*)0x4000000		//Display Control (Mode)
 #define REG_DISPCNT_L  *(vu16*)0x4000000		//???
@@ -228,18 +228,18 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define REG_SOUND4CNT_L *(vu16*)0x4000078		//???
 #define REG_SOUND4CNT_H *(vu16*)0x400007C		//???
 
-#define REG_SGCNT0     *(vu32*)0x4000080		
-#define REG_SGCNT0_L   *(vu16*)0x4000080		
+#define REG_SGCNT0     *(vu32*)0x4000080
+#define REG_SGCNT0_L   *(vu16*)0x4000080
 #define REG_SOUNDCNT   *(vu32*)0x4000080
 #define REG_SOUNDCNT_L *(vu16*)0x4000080		//DMG sound control
 
-#define REG_SGCNT0_H   *(vu16*)0x4000082		
+#define REG_SGCNT0_H   *(vu16*)0x4000082
 #define REG_SOUNDCNT_H *(vu16*)0x4000082		//Direct sound control
 
-#define REG_SGCNT1     *(vu16*)0x4000084		
+#define REG_SGCNT1     *(vu16*)0x4000084
 #define REG_SOUNDCNT_X *(vu16*)0x4000084	    //Extended sound control
 
-#define REG_SGBIAS     *(vu16*)0x4000088		
+#define REG_SGBIAS     *(vu16*)0x4000088
 #define REG_SOUNDBIAS  *(vu16*)0x4000088		//bit rate+sound bias
 
 #define REG_WAVE_RAM0  *(vu32*)0x4000090		//???
@@ -342,11 +342,6 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define REG_IME        *(u16*)0x4000208		//Interrupt Master Enable
 #define REG_PAUSE      *(u16*)0x4000300		//Pause
 
-
-//#ifdef __cplusplus
-//}      /* extern "C" */
-//#endif
-
 #define OBJ_TILE_VRAM ((vu8*)0x6010000)
 #define OBJ_PALETTE_POINTER ((vu8*)0x5000200)
 #define OAM_ATTRIBS ((vu16*)0x7000000)
@@ -392,3 +387,7 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define BG_PALETTE_POINTER ((vu8*)0x5000000)
 
 #endif	// _GBA_H
+
+//#ifdef __cplusplus
+//}      /* extern "C" */
+//#endif

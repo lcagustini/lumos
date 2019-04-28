@@ -3,13 +3,13 @@
 
 @=======================================================================
 @
-@	bullet, 16x16@4, 
+@	bullet, 8x8@4, 
 @	Transparent color : FF,00,FF
 @	+ palette 16 entries, not compressed
-@	+ 4 tiles not compressed
-@	Total size: 32 + 128 = 160
+@	+ 1 tiles not compressed
+@	Total size: 32 + 32 = 64
 @
-@	Time-stamp: 2019-04-27, 23:32:25
+@	Time-stamp: 2019-04-28, 01:04:09
 @	Exported by Cearn's GBA Image Transmogrifier, v0.8.15
 @	( http://www.coranac.com/projects/#grit )
 @
@@ -17,13 +17,10 @@
 
 	.section .rodata
 	.align	2
-	.global bulletTiles		@ 128 unsigned chars
+	.global bulletTiles		@ 32 unsigned chars
 	.hidden bulletTiles
 bulletTiles:
-	.word 0x00000000,0x00000000,0x10000000,0x11100000,0x11110000,0x11111000,0x11111000,0x11111000
-	.word 0x00000000,0x00000000,0x00000001,0x00000011,0x00001111,0x00011111,0x00011111,0x00111111
-	.word 0x11111100,0x11111100,0x11111100,0x11111000,0x11100000,0x10000000,0x00000000,0x00000000
-	.word 0x00111111,0x00111111,0x00111111,0x00011111,0x00011111,0x00001111,0x00000010,0x00000000
+	.word 0x00000000,0x00011100,0x00111110,0x01111110,0x01111110,0x00111110,0x00111000,0x00000000
 
 	.section .rodata
 	.align	2

@@ -1,9 +1,9 @@
 
-//{{BLOCK(enemy)
+//{{BLOCK(larry_lado)
 
 //======================================================================
 //
-//	enemy, 16x16@4, 
+//	larry_lado, 16x16@4, 
 //	Transparent color : FF,00,FF
 //	+ palette 16 entries, not compressed
 //	+ 4 tiles not compressed
@@ -15,15 +15,15 @@
 //
 //======================================================================
 
-#ifndef GRIT_ENEMY_H
-#define GRIT_ENEMY_H
+#ifndef GRIT_LARRY_LADO_H
+#define GRIT_LARRY_LADO_H
 
-#define enemyTilesLen 128
-extern const unsigned int enemyTiles[32];
+#define larry_ladoTilesLen 128
+extern const unsigned int larry_ladoTiles[32];
 
-#define enemyPalLen 32
-extern const unsigned short enemyPal[16];
+#define larry_ladoPalLen 32
+extern const unsigned short larry_ladoPal[16];
 
-#endif // GRIT_ENEMY_H
+#endif // GRIT_LARRY_LADO_H
 
-//}}BLOCK(enemy)
+//}}BLOCK(larry_lado)
