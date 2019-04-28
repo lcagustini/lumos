@@ -8,6 +8,7 @@
 #include "gfx/lumos_vert.h"
 #include "gfx/lumos_1_45.h"
 #include "gfx/patrono_1.h"
+#include "gfx/patrono_1_vert.h"
 #include "gfx/hud.h"
 
 #include "gfx/vela_apagada_1.h"
@@ -775,9 +776,13 @@ reset_game:
         DMA3Copy(OBJ_TILE_VRAM + 32*21, vela_acesa_1Tiles, vela_acesa_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 128, vela_acesa_1Pal, vela_acesa_1PalLen/4);
     }
-    { // Patrono
+    { // Patrono H
         DMA3Copy(OBJ_TILE_VRAM + 32*29, patrono_1Tiles, patrono_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1Pal, patrono_1PalLen/4);
+    }
+    { // Patrono V
+        DMA3Copy(OBJ_TILE_VRAM + 32*53, patrono_1_vertTiles, patrono_1_vertTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1_vertPal, patrono_1_vertPalLen/4);
     }
     { // HUD
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
@@ -1116,8 +1121,22 @@ reset_game:
         for (int i = 0; i < playerBulletsLen; i++) {
             if (playerBullets[i].patrono) {
                 OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
-                OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
-                OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+                if (playerBullets[i].dir & BULLET_LEFT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15 | BIT12;
+                    OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+                }
+                else if (playerBullets[i].dir & BULLET_RIGHT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
+                    OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+                }
+                else if (playerBullets[i].dir & BULLET_UP) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 53 | BIT10 | BIT12 | BIT14;
+                }
+                else if (playerBullets[i].dir & BULLET_DOWN) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
+                    OAM_ATTRIBS[322 + i*4] = 53 | BIT10 | BIT12 | BIT14;
+                }
             } else {
                 OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
                 if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT)) {

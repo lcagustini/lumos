@@ -37,6 +37,8 @@ gfx: force
 	grit gfx/lumos_vert.png -o src/gfx/lumos_vert
 	grit gfx/lumos_1_vert.png -o src/gfx/lumos_1_vert
 	grit gfx/patrono_1.png -o src/gfx/patrono_1
+	grit gfx/patrono_1_vert.png -o src/gfx/patrono_1_vert
+	grit gfx/patrono_2_vert.png -o src/gfx/patrono_2_vert
 	grit gfx/hud.png -o src/gfx/hud
 	grit gfx/vela_acesa_1.png -o src/gfx/vela_acesa_1
 	grit gfx/vela_acesa_2.png -o src/gfx/vela_acesa_2
