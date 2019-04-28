@@ -17,6 +17,7 @@
 #define INTTOFP(a) (a<<8)
 #define FPTOINT(a) (a>>8)
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define ABS(a) ((a)<0 ? (-a) : (a))
 
 #define PLAYER_SPEED (0b1011 << 5)
@@ -60,8 +61,8 @@ struct {
     u16 bullet_timer;
     u16 mana_timer;
 
-    s8 mana;
-    s8 health;
+    s16 mana;
+    s16 health;
     PlayerDir dir;
 } player;
 
@@ -345,6 +346,47 @@ void drawGUI() {
     }
 }
 
+void updateLights() {
+#define THRESHOLD0 0
+#define THRESHOLD1 (8 * 8)
+#define THRESHOLD2 (16 * 16)
+#define THRESHOLD3 (36 * 32)
+    Room cur = rooms[currentRoomY][currentRoomX];
+    for (u16 j = 0; j < 640; j++) {
+        BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+    }
+    for (int i = 0; i < cur.lightSourcesLen; i++) {
+        s16 lx = cur.lightSources[i].x + 8;
+        s16 ly = cur.lightSources[i].y + 4;
+
+        for (u16 j = 0; j < 640; j++) {
+            s16 x = ((j & 0b11111) << 3) + 4;
+            if (x >= 240) continue;
+            s16 y = ((j >> 5) << 3) + 4;
+            s16 dx = x - lx;
+            s16 dy = y - ly;
+            u32 sqDist = dx * dx + dy * dy;
+            //u32 sqDist = ABS(dx) + ABS(dy);
+
+            u16 brightness = BG_MAP_VRAM_BASE10[j] & (BIT12|BIT13|BIT14|BIT15);
+            brightness >>= 12;
+
+            if (sqDist > THRESHOLD3) {
+            } else if (sqDist > THRESHOLD2 && brightness == 0) {
+                BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+                BG_MAP_VRAM_BASE10[j] |= (BIT14);
+            } else if (sqDist > THRESHOLD1 && 
+                    (brightness == 0 || brightness == 4)) {
+                BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+                BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT13);
+            } else {
+                BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+                BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT14);
+            }
+        }
+    }
+}
+
 void changeRoom(Room r) {
     // change monsters
     monstersLen = r.monsterSpawnsLen;
@@ -362,47 +404,7 @@ void changeRoom(Room r) {
 
     // TODO: change itens
 
-    {
-#define THRESHOLD0 0
-#define THRESHOLD1 (8 * 8)
-#define THRESHOLD2 (16 * 16)
-#define THRESHOLD3 (36 * 32)
-        Room cur = rooms[currentRoomY][currentRoomX];
-        for (u16 j = 0; j < 640; j++) {
-            BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
-        }
-        for (int i = 0; i < cur.lightSourcesLen; i++) {
-            s16 lx = cur.lightSources[i].x + 8;
-            s16 ly = cur.lightSources[i].y + 4;
-
-            for (u16 j = 0; j < 640; j++) {
-                s16 x = ((j & 0b11111) << 3) + 4;
-                if (x >= 240) continue;
-                s16 y = ((j >> 5) << 3) + 4;
-                s16 dx = x - lx;
-                s16 dy = y - ly;
-                u32 sqDist = dx * dx + dy * dy;
-                //u32 sqDist = ABS(dx) + ABS(dy);
-
-                u16 brightness = BG_MAP_VRAM_BASE10[j] & (BIT12|BIT13|BIT14|BIT15);
-                brightness >>= 12;
-
-                if (sqDist > THRESHOLD3) {
-                } else if (sqDist > THRESHOLD2 && brightness == 0) {
-                    BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
-                    BG_MAP_VRAM_BASE10[j] |= (BIT14);
-                } else if (sqDist > THRESHOLD1 && 
-                        (brightness == 0 || brightness == 4)) {
-                    BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
-                    BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT13);
-                } else {
-                    BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
-                    BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT14);
-                }
-            }
-        }
-    }
-
+    updateLights();
 }
 
 bool scroll(ScrollDir dir) {
@@ -705,6 +707,30 @@ reset_game:
                 player.x += PLAYER_SPEED;
                 player.dir = DIR_RIGHT;
                 dir |= BULLET_RIGHT;
+            }
+#define LIGHT_PICKUP_RANGE 20
+            if (~REG_KEYPAD & (BUTTON_LEFT|BUTTON_RIGHT)) {
+                Room *cur = &rooms[currentRoomY][currentRoomX];
+                if (cur->lightSourcesLen) {
+                    s16 nearest = 999;
+                    u8 nearest_index = 99;
+                    for (int i = 0; i < cur->lightSourcesLen; i++) {
+                        s16 dx = cur->lightSources[i].x - FPTOINT(player.x);
+                        s16 dy = cur->lightSources[i].y - FPTOINT(player.y);
+                        s16 manhattan = ABS(dx) + ABS(dy);
+
+                        if (manhattan < nearest) {
+                            nearest = manhattan;
+                            nearest_index = i;
+                        }
+                    }
+                    if (nearest < LIGHT_PICKUP_RANGE && nearest > 0) {
+                        cur->lightSources[nearest_index] = cur->lightSources[cur->lightSourcesLen-1];
+                        cur->lightSourcesLen -= 1;
+                        player.mana = MIN(player.mana + 30, 100);
+                        updateLights();
+                    }
+                }
             }
             if (~REG_KEYPAD & BUTTON_A) {
                 if (playerBulletsLen < 10 && !player.bullet_timer && player.mana >= 5) {
