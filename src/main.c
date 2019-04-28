@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
 
 #define INTTOFP(a) (a<<8)
 #define FPTOINT(a) (a>>8)
@@ -58,10 +59,10 @@ struct {
     u16 bullet_timer;
     u16 mana_timer;
 
-    u8 mana;
-    // TODO: health
+    s8 mana;
+    s8 health;
     PlayerDir dir;
-} player = {0};
+} player;
 
 typedef struct {
     u16 x;
@@ -69,8 +70,8 @@ typedef struct {
     s8 health;
     // TODO: monster type
 } Monster;
-Monster monsters[50] = {0};
-u8 monstersLen = 0;
+Monster monsters[50];
+u8 monstersLen;
 
 typedef enum {
     INVALID_ROOM = 0,
@@ -92,7 +93,7 @@ typedef struct {
     // TODO: itens
     // TODO: light sources
 } Room;
-Room rooms[10][10] = {0};
+Room rooms[10][10];
 
 #define STARTING_ROOM_X 5
 #define STARTING_ROOM_Y 5
@@ -105,7 +106,7 @@ struct {
     u16 y;
     BulletDir dir;
 } playerBullets[10];
-u8 playerBulletsLen = 0;
+u8 playerBulletsLen;
 
 void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
     REG_DMA3SAD = src;
@@ -192,6 +193,18 @@ bool collidesWithOtherMonsters(u8 index) {
     return false;
 }
 
+bool collidesWithPlayer(u8 index) {
+    Monster m = monsters[index];
+    if(m.x + INTTOFP(4) < player.x + INTTOFP(8 + 4) &&
+            m.x + INTTOFP(8 + 4) > player.x + INTTOFP(4) &&
+            m.y + INTTOFP(4) < player.y + INTTOFP(8 + 4) &&
+            m.y + INTTOFP(8 + 4) > player.y + INTTOFP(4))
+    {
+        return true;
+    }
+    return false;
+}
+
 void updateMonsters() {
     for (int i = 0; i < monstersLen; i++) {
         if (monsters[i].health <= 0) {
@@ -212,22 +225,40 @@ void updateMonsters() {
             if (dx < 0) {
                 monsters[i].x -= MONSTER_SPEED;
                 if (collidesWithOtherMonsters(i)) monsters[i].x += MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].x += MONSTER_SPEED;
+                    player.health--;
+                }
             }
             else {
                 monsters[i].x += MONSTER_SPEED;
                 if (collidesWithOtherMonsters(i)) monsters[i].x -= MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].x -= MONSTER_SPEED;
+                    player.health--;
+                }
             }
         }
         else {
             if (dy < 0) {
                 monsters[i].y -= MONSTER_SPEED;
                 if (collidesWithOtherMonsters(i)) monsters[i].y += MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].y += MONSTER_SPEED;
+                    player.health--;
+                }
             }
             else {
                 monsters[i].y += MONSTER_SPEED;
                 if (collidesWithOtherMonsters(i)) monsters[i].y -= MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].y -= MONSTER_SPEED;
+                    player.health--;
+                }
             }
         }
+
+        // collision with player
     }
 }
 
@@ -429,11 +460,27 @@ void generateRooms() {
 };
 
 int main() {
+reset_game:
+    {
+        memset(&player, 0, sizeof(player));
+        memset(monsters, 0, sizeof(monsters));
+        memset(&monstersLen, 0, sizeof(monstersLen));
+        memset(playerBullets, 0, sizeof(playerBullets));
+        memset(&playerBulletsLen, 0, sizeof(playerBulletsLen));
+        memset(rooms, 0, sizeof(rooms));
+        currentRoomX = STARTING_ROOM_X;
+        currentRoomY = STARTING_ROOM_Y;
+
+        memset((void*)OAM_ATTRIBS, 0, 128 * 4);
+    }
+
+
     REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT12; //Mode 0 + BG0-2 + OBJ + 1D OBJ Mapping
 
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
     player.mana = 100;
+    player.health = 100;
 
     { //Ball
         DMA3Copy(OBJ_TILE_VRAM + 32*1, ballTiles, ballTilesLen/4);
@@ -516,9 +563,14 @@ int main() {
         updateMonsters();
         updateBullets();
 
+        // player death
+        if (player.health <= 0) {
+            goto reset_game;
+        }
+
         if (player.bullet_timer) player.bullet_timer--;
         if (player.mana_timer) player.mana_timer--;
-        else if (monstersLen) {
+        else if (monstersLen && player.mana < 100) {
             player.mana_timer = 20;
             player.mana++;
         }
