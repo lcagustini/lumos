@@ -21,6 +21,8 @@
 #define MONSTER_SPEED INTTOFP(1)
 #define BULLET_SPEED INTTOFP(1)
 
+#define DIAGONAL_BULLET_SPEED (u16)((FPTOINT(BULLET_SPEED)*1.41/2.0)*256)
+
 /* OAMATTRIBS: (cada 4 -> uma sprite)
  *  0    -> player
  *  4+   -> enemy
@@ -110,17 +112,41 @@ void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
 
 void updateBullets() {
     for (int i = 0; i < playerBulletsLen; i++) {
-        if (playerBullets[i].dir & BULLET_UP) {
+        if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT) &&
+            !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+            playerBullets[i].x -= DIAGONAL_BULLET_SPEED;
+            playerBullets[i].y -= DIAGONAL_BULLET_SPEED;
+        }
+        if ((playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
+            (playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+            playerBullets[i].x += DIAGONAL_BULLET_SPEED;
+            playerBullets[i].y -= DIAGONAL_BULLET_SPEED;
+        }
+        if (!(playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT) &&
+            !(playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
+            playerBullets[i].x -= DIAGONAL_BULLET_SPEED;
+            playerBullets[i].y += DIAGONAL_BULLET_SPEED;
+        }
+        if (!(playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
+            (playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
+            playerBullets[i].x += DIAGONAL_BULLET_SPEED;
+            playerBullets[i].y += DIAGONAL_BULLET_SPEED;
+        }
+        if ((playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
+            !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].y -= BULLET_SPEED;
         }
-        if (playerBullets[i].dir & BULLET_LEFT) {
+        if (!(playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT) &&
+            !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x -= BULLET_SPEED;
         }
-        if (playerBullets[i].dir & BULLET_DOWN) {
-            playerBullets[i].y += BULLET_SPEED;
-        }
-        if (playerBullets[i].dir & BULLET_RIGHT) {
+        if (!(playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
+            (playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x += BULLET_SPEED;
+        }
+        if (!(playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
+            !(playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
+            playerBullets[i].y += BULLET_SPEED;
         }
 
         if (FPTOINT(playerBullets[i].x) <= FPTOINT(BULLET_SPEED)
@@ -205,6 +231,12 @@ bool scroll(ScrollDir dir) {
         OAM_ATTRIBS[6 + i*4] = 0;
     }
     monstersLen = 0;
+
+    for (u8 i = 0; i < playerBulletsLen; i++) {
+        OAM_ATTRIBS[321 + i*4] = 0;
+        OAM_ATTRIBS[322 + i*4] = 0;
+    }
+    playerBulletsLen = 0;
 
     u16 tilesLen, mapLen, palLen;
 
