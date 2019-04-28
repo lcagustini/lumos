@@ -18,7 +18,7 @@
 #define ABS(a) ((a)<0 ? (-a) : (a))
 
 #define PLAYER_SPEED (0b1011 << 5)
-#define MONSTER_SPEED INTTOFP(1)
+#define MONSTER_SPEED (0b111 << 4)
 #define BULLET_SPEED INTTOFP(3)
 
 #define DIAGONAL_BULLET_SPEED (u16)((FPTOINT(BULLET_SPEED)*1.41/2.0)*256)
@@ -66,7 +66,7 @@ struct {
 typedef struct {
     u16 x;
     u16 y;
-    u8 health;
+    s8 health;
     // TODO: monster type
 } Monster;
 Monster monsters[50] = {0};
@@ -164,10 +164,10 @@ void updateBullets() {
         }
 
         for (int j = 0; j < monstersLen; j++) {
-            if(playerBullets[i].x < monsters[j].x + INTTOFP(16) &&
-                    playerBullets[i].x + INTTOFP(16) > monsters[j].x &&
-                    playerBullets[i].y < monsters[j].y + INTTOFP(16) &&
-                    playerBullets[i].y + INTTOFP(16) > monsters[j].y)
+            if(playerBullets[i].x + 1 < monsters[j].x + INTTOFP(16) &&
+                    playerBullets[i].x + 1 + INTTOFP(14) > monsters[j].x &&
+                    playerBullets[i].y + 1 < monsters[j].y + INTTOFP(16) &&
+                    playerBullets[i].y + 1 + INTTOFP(14) > monsters[j].y)
             {
                 monsters[j].health--;
             }
@@ -177,11 +177,15 @@ void updateBullets() {
 
 void updateMonsters() {
     for (int i = 0; i < monstersLen; i++) {
-        if (monsters[i].health == 0) {
+        if (monsters[i].health <= 0) {
             monsters[i] = monsters[--monstersLen];
 
             OAM_ATTRIBS[5 + monstersLen*4] = 0;
             OAM_ATTRIBS[6 + monstersLen*4] = 0;
+
+            u8 cx = currentRoomX;
+            u8 cy = currentRoomY;
+            rooms[cy][cx].monsterSpawns[i] = rooms[cy][cx].monsterSpawns[--rooms[cy][cx].monsterSpawnsLen];
         }
 
         s32 dx = (s32)player.x - (s32)monsters[i].x;
@@ -493,7 +497,7 @@ int main() {
 
         if (player.bullet_timer) player.bullet_timer--;
         if (player.mana_timer) player.mana_timer--;
-        else {
+        else if (monstersLen) {
             player.mana_timer = 20;
             player.mana++;
         }
