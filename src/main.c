@@ -6,10 +6,22 @@
 
 #include <stdbool.h>
 
+#define INTTOFP(a) (a<<8)
+#define FPTOINT(a) (a>>8)
+
+#define PLAYER_SPEED (0b1011 << 5)
+
 struct {
-    u8 x;
-    u8 y;
+    u16 x;
+    u16 y;
 } player = {0};
+
+struct {
+    u16 x;
+    u16 y;
+    u8 health;
+} monsters[50] = {0};
+u8 monstersLen = 0;
 
 typedef enum {
     SCROLL_UP,
@@ -23,6 +35,11 @@ void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
     REG_DMA3DAD = dest;
     REG_DMA3CNT_L = size;
     REG_DMA3CNT_H = BIT10 | BIT15;
+}
+
+void updateMonsters() {
+    for (int i = 0; i < monstersLen; i++) {
+    }
 }
 
 void scroll(ScrollDir dir) {
@@ -45,19 +62,19 @@ void scroll(ScrollDir dir) {
 
         switch (dir) {
             case SCROLL_UP:
-                player.y += 2;
+                player.y += INTTOFP(2);
                 scroll -= 2;
                 break;
             case SCROLL_LEFT:
-                player.x += 2;
+                player.x += INTTOFP(2);
                 scroll -= 2;
                 break;
             case SCROLL_DOWN:
-                player.y -= 2;
+                player.y -= INTTOFP(2);
                 scroll += 2;
                 break;
             case SCROLL_RIGHT:
-                player.x -= 2;
+                player.x -= INTTOFP(2);
                 scroll += 2;
                 break;
         }
@@ -83,24 +100,24 @@ void scroll(ScrollDir dir) {
         }
 
         //TODO: Truncate player x and y
-        OAM_ATTRIBS[0] = (OAM_ATTRIBS[0] & 0b1111111100000000) | player.y;
-        OAM_ATTRIBS[1] = (OAM_ATTRIBS[1] & 0b1111111000000000) | player.x;
+        OAM_ATTRIBS[0] = (OAM_ATTRIBS[0] & 0b1111111100000000) | FPTOINT(player.y);
+        OAM_ATTRIBS[1] = (OAM_ATTRIBS[1] & 0b1111111000000000) | FPTOINT(player.x);
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
     }
 
     switch (dir) {
         case SCROLL_UP:
-            player.y -= 32;
+            player.y -= INTTOFP(24);
             break;
         case SCROLL_LEFT:
-            player.x -= 32;
+            player.x -= INTTOFP(24);
             break;
         case SCROLL_DOWN:
-            player.y += 32;
+            player.y += INTTOFP(24);
             break;
         case SCROLL_RIGHT:
-            player.x += 32;
+            player.x += INTTOFP(24);
             break;
     }
 
@@ -120,8 +137,13 @@ void scroll(ScrollDir dir) {
 int main() {
     REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT12; //Mode 0 + BG0-2 + OBJ + 1D OBJ Mapping
 
-    player.x = 10;
-    player.y = 10;
+    player.x = INTTOFP(10);
+    player.y = INTTOFP(10);
+
+    monsters[0].x = INTTOFP(50);
+    monsters[0].y = INTTOFP(50);
+    monsters[0].health = 10;
+    monstersLen = 1;
 
     { //Ball
         DMA3Copy(OBJ_TILE_VRAM + 32*1, ballTiles, ballTilesLen/4);
@@ -147,36 +169,38 @@ int main() {
 
     while(1) {
         if (~REG_KEYPAD & KEYPAD_UP) {
-            player.y--;
+            player.y -= PLAYER_SPEED;
         }
         if (~REG_KEYPAD & KEYPAD_LEFT) {
-            player.x--;
+            player.x -= PLAYER_SPEED;
         }
         if (~REG_KEYPAD & KEYPAD_DOWN) {
-            player.y++;
+            player.y += PLAYER_SPEED;
         }
         if (~REG_KEYPAD & KEYPAD_RIGHT) {
-            player.x++;
+            player.x += PLAYER_SPEED;
         }
+
+        updateMonsters();
 
         while(!(REG_DISPSTAT & BIT00)); //Wait VBlank migue
 
-        if (player.x == 0) {
+        if (FPTOINT(player.x) == 0) {
             scroll(SCROLL_LEFT);
         }
-        else if (player.x == 240-16) {
+        else if (FPTOINT(player.x) == 240-16) {
             scroll(SCROLL_RIGHT);
         }
-        else if (player.y == 0) {
+        else if (FPTOINT(player.y) == 0) {
             scroll(SCROLL_UP);
         }
-        else if (player.y == 160-16) {
+        else if (FPTOINT(player.y) == 160-16) {
             scroll(SCROLL_DOWN);
         }
 
         //TODO: Truncate player x and y
-        OAM_ATTRIBS[0] = (OAM_ATTRIBS[0] & 0b1111111100000000) | player.y;
-        OAM_ATTRIBS[1] = (OAM_ATTRIBS[1] & 0b1111111000000000) | player.x;
+        OAM_ATTRIBS[0] = (OAM_ATTRIBS[0] & 0b1111111100000000) | FPTOINT(player.y);
+        OAM_ATTRIBS[1] = (OAM_ATTRIBS[1] & 0b1111111000000000) | FPTOINT(player.x);
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
     }
