@@ -3,12 +3,21 @@
 #include "gfx/room.h"
 #include "gfx/room_door.h"
 #include "gfx/enemy.h"
+#include "gfx/enemy_2.h"
 #include "gfx/lumos.h"
 #include "gfx/hud.h"
 
-#include "gfx/larry_frente.h"
-#include "gfx/larry_lado.h"
-#include "gfx/larry_tras.h"
+#include "gfx/vela_apagada_1.h"
+#include "gfx/vela_acesa_1.h"
+#include "gfx/vela_apagada_2.h"
+#include "gfx/vela_acesa_2.h"
+
+#include "gfx/larry_frente_1.h"
+#include "gfx/larry_frente_2.h"
+#include "gfx/larry_lado_1.h"
+#include "gfx/larry_lado_2.h"
+#include "gfx/larry_tras_1.h"
+#include "gfx/larry_tras_2.h"
 
 #include <stdbool.h>
 #include <assert.h>
@@ -29,8 +38,17 @@
 /* OAMATTRIBS: (cada 4 -> uma sprite)
  *  0    -> player
  *  4+   -> enemy
+ *  240+ -> candles
  *  320+ -> player bullet
  */
+
+u32 frame;
+
+enum {
+    LARRY,
+    RONALDO,
+    LORRAINE,
+} character = LARRY;
 
 typedef enum {
     DIR_UP,
@@ -89,10 +107,16 @@ typedef struct {
 } SpawnLoc;
 
 typedef struct {
+    u8 x;
+    u8 y;
+    bool on;
+} Light;
+
+typedef struct {
     RoomType type;
     SpawnLoc monsterSpawns[10];
     u8 monsterSpawnsLen;
-    SpawnLoc lightSources[4];
+    Light lightSources[4];
     u8 lightSourcesLen;
     // TODO: itens
 } Room;
@@ -121,46 +145,46 @@ void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
 void updateBullets() {
     for (int i = 0; i < playerBulletsLen; i++) {
         if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT) &&
-            !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+                !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x -= DIAGONAL_BULLET_SPEED;
             playerBullets[i].y -= DIAGONAL_BULLET_SPEED;
         }
         if ((playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
-            (playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+                (playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x += DIAGONAL_BULLET_SPEED;
             playerBullets[i].y -= DIAGONAL_BULLET_SPEED;
         }
         if (!(playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT) &&
-            !(playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
+                !(playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x -= DIAGONAL_BULLET_SPEED;
             playerBullets[i].y += DIAGONAL_BULLET_SPEED;
         }
         if (!(playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
-            (playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
+                (playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x += DIAGONAL_BULLET_SPEED;
             playerBullets[i].y += DIAGONAL_BULLET_SPEED;
         }
         if ((playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
-            !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+                !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].y -= BULLET_SPEED;
         }
         if (!(playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT) &&
-            !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+                !(playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x -= BULLET_SPEED;
         }
         if (!(playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
-            (playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
+                (playerBullets[i].dir & BULLET_RIGHT) && !(playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].x += BULLET_SPEED;
         }
         if (!(playerBullets[i].dir & BULLET_UP) && !(playerBullets[i].dir & BULLET_LEFT) &&
-            !(playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
+                !(playerBullets[i].dir & BULLET_RIGHT) && (playerBullets[i].dir & BULLET_DOWN)) {
             playerBullets[i].y += BULLET_SPEED;
         }
 
         if (FPTOINT(playerBullets[i].x) <= FPTOINT(BULLET_SPEED)
-            || FPTOINT(playerBullets[i].x) >= (240-16-FPTOINT(BULLET_SPEED))
-            || FPTOINT(playerBullets[i].y) <= FPTOINT(BULLET_SPEED)
-            || FPTOINT(playerBullets[i].y) >= (160-16-FPTOINT(BULLET_SPEED))) {
+                || FPTOINT(playerBullets[i].x) >= (240-16-FPTOINT(BULLET_SPEED))
+                || FPTOINT(playerBullets[i].y) <= FPTOINT(BULLET_SPEED)
+                || FPTOINT(playerBullets[i].y) >= (160-16-FPTOINT(BULLET_SPEED))) {
             playerBullets[i--] = playerBullets[--playerBulletsLen];
             OAM_ATTRIBS[320 + playerBulletsLen*4] = 0;
             OAM_ATTRIBS[321 + playerBulletsLen*4] = 0;
@@ -356,6 +380,16 @@ void updateLights() {
         BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
     }
     for (int i = 0; i < cur.lightSourcesLen; i++) {
+        OAM_ATTRIBS[240 + i*4] = cur.lightSources[i].y | BIT15;
+        OAM_ATTRIBS[241 + i*4] = cur.lightSources[i].x | BIT15;
+        if (!cur.lightSources[i].on) {
+            OAM_ATTRIBS[242 + i*4] = 13 | BIT12 | BIT13;
+            continue;
+        }
+        else {
+            OAM_ATTRIBS[242 + i*4] = 21 | BIT14;
+        }
+
         s16 lx = cur.lightSources[i].x + 8;
         s16 ly = cur.lightSources[i].y + 4;
 
@@ -375,7 +409,7 @@ void updateLights() {
             } else if (sqDist > THRESHOLD2 && brightness == 0) {
                 BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
                 BG_MAP_VRAM_BASE10[j] |= (BIT14);
-            } else if (sqDist > THRESHOLD1 && 
+            } else if (sqDist > THRESHOLD1 &&
                     (brightness == 0 || brightness == 4)) {
                 BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
                 BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT13);
@@ -427,6 +461,12 @@ bool scroll(ScrollDir dir) {
             break;
         default:
             assert(false);
+    }
+
+    for (u8 i = 0; i < 4; i++) {
+        OAM_ATTRIBS[240 + i*4] = 0;
+        OAM_ATTRIBS[241 + i*4] = 0;
+        OAM_ATTRIBS[242 + i*4] = 0;
     }
 
     for (u8 i = 0; i < monstersLen; i++) {
@@ -593,7 +633,7 @@ bool scroll(ScrollDir dir) {
 
 void generateRooms() {
     {
-        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2, {{70, 70}, {20, 80}, {160, 60}, {80, 90}}, 4 };
+        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2, {{70, 70, 1}, {20, 80, 1}, {160, 60, 1}, {80, 90, 1}}, 4 };
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X] = r;
     }
 
@@ -625,6 +665,8 @@ reset_game:
         currentRoomX = STARTING_ROOM_X;
         currentRoomY = STARTING_ROOM_Y;
 
+        frame = 0;
+
         memset((void*)OAM_ATTRIBS, 0, 128 * 4);
     }
 
@@ -637,6 +679,9 @@ reset_game:
     player.health = 100;
 
     { //Player
+        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+
         OAM_ATTRIBS[1] = BIT14;
         OAM_ATTRIBS[2] = BIT00 | BIT10 | BIT11;
     }
@@ -674,6 +719,14 @@ reset_game:
         DMA3Copy(OBJ_TILE_VRAM + 32*9, lumosTiles, lumosTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 64, lumosPal, lumosPalLen/4);
     }
+    { //Candle
+        DMA3Copy(OBJ_TILE_VRAM + 32*13, vela_apagada_1Tiles, vela_apagada_1TilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 96, vela_apagada_1Pal, vela_apagada_1PalLen/4);
+    }
+    { //Candle
+        DMA3Copy(OBJ_TILE_VRAM + 32*21, vela_acesa_1Tiles, vela_acesa_1TilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 128, vela_acesa_1Pal, vela_acesa_1PalLen/4);
+    }
     { //HUD
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
         DMA3Copy(BG_PALETTE_POINTER + 64/2, hudPal, hudPalLen/4);
@@ -708,6 +761,17 @@ reset_game:
                 player.dir = DIR_RIGHT;
                 dir |= BULLET_RIGHT;
             }
+            if (~REG_KEYPAD & BUTTON_SELECT) {
+                if (character == LARRY) {
+                    character = LORRAINE;
+                }
+                else if (character == LORRAINE) {
+                    character = RONALDO;
+                }
+                else if (character == RONALDO) {
+                    character = LARRY;
+                }
+            }
 #define LIGHT_PICKUP_RANGE 20
             if (~REG_KEYPAD & (BUTTON_LEFT|BUTTON_RIGHT)) {
                 Room *cur = &rooms[currentRoomY][currentRoomX];
@@ -715,6 +779,7 @@ reset_game:
                     s16 nearest = 999;
                     u8 nearest_index = 99;
                     for (int i = 0; i < cur->lightSourcesLen; i++) {
+                        if (!cur->lightSources[i].on) continue;
                         s16 dx = cur->lightSources[i].x - FPTOINT(player.x);
                         s16 dy = cur->lightSources[i].y - FPTOINT(player.y);
                         s16 manhattan = ABS(dx) + ABS(dy);
@@ -725,8 +790,9 @@ reset_game:
                         }
                     }
                     if (nearest < LIGHT_PICKUP_RANGE && nearest > 0) {
-                        cur->lightSources[nearest_index] = cur->lightSources[cur->lightSourcesLen-1];
-                        cur->lightSourcesLen -= 1;
+                        //cur->lightSources[nearest_index] = cur->lightSources[cur->lightSourcesLen-1];
+                        //cur->lightSourcesLen -= 1;
+                        cur->lightSources[nearest_index].on = false;
                         player.mana = MIN(player.mana + 30, 100);
                         updateLights();
                     }
@@ -780,8 +846,45 @@ reset_game:
         }
 
         // VBLANK BARRIER
-        while(!(REG_DISPSTAT & BIT00)); //Wait VBlank migue
+        while(!(REG_DISPSTAT & BIT00)) {} //Wait VBlank migue
         // ACTIVATE
+
+        if (!(frame & 0b1111)) {
+            if (frame & 0b10000) {
+                { //Candle
+                    DMA3Copy(OBJ_TILE_VRAM + 32*13, vela_apagada_2Tiles, vela_apagada_2TilesLen/4);
+                    DMA3Copy(OBJ_PALETTE_POINTER + 96, vela_apagada_2Pal, vela_apagada_2PalLen/4);
+                }
+                { //Candle
+                    DMA3Copy(OBJ_TILE_VRAM + 32*21, vela_acesa_2Tiles, vela_acesa_2TilesLen/4);
+                    DMA3Copy(OBJ_PALETTE_POINTER + 128, vela_acesa_2Pal, vela_acesa_2PalLen/4);
+                }
+            }
+            else {
+                { //Candle
+                    DMA3Copy(OBJ_TILE_VRAM + 32*13, vela_apagada_1Tiles, vela_apagada_1TilesLen/4);
+                    DMA3Copy(OBJ_PALETTE_POINTER + 96, vela_apagada_1Pal, vela_apagada_1PalLen/4);
+                }
+                { //Candle
+                    DMA3Copy(OBJ_TILE_VRAM + 32*21, vela_acesa_1Tiles, vela_acesa_1TilesLen/4);
+                    DMA3Copy(OBJ_PALETTE_POINTER + 128, vela_acesa_1Pal, vela_acesa_1PalLen/4);
+                }
+            }
+        }
+        if (!((frame + 10) & 0b1111)) {
+            if ((frame + 10) & 0b10000) {
+                {
+                    DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+                    DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+                }
+            }
+            else {
+                {
+                    DMA3Copy(OBJ_TILE_VRAM + 32*5, enemy_2Tiles, enemy_2TilesLen/4);
+                    DMA3Copy(OBJ_PALETTE_POINTER + 32, enemy_2Pal, enemy_2PalLen/4);
+                }
+            }
+        }
 
         drawGUI();
 
@@ -800,22 +903,54 @@ reset_game:
 
         switch (player.dir) {
             case DIR_UP:
-                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_trasTiles, larry_trasTilesLen/4);
-                DMA3Copy(OBJ_PALETTE_POINTER, larry_trasPal, larry_trasPalLen/4);
+                if (!(FPTOINT(player.y) & 0b111)) {
+                    if (FPTOINT(player.y) & 0b1000) {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_tras_1Tiles, larry_tras_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_tras_1Pal, larry_tras_1PalLen/4);
+                    }
+                    else {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_tras_2Tiles, larry_tras_2TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_tras_2Pal, larry_tras_2PalLen/4);
+                    }
+                }
                 break;
             case DIR_LEFT:
                 OAM_ATTRIBS[1] |= BIT12;
-                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_ladoTiles, larry_ladoTilesLen/4);
-                DMA3Copy(OBJ_PALETTE_POINTER, larry_ladoPal, larry_ladoPalLen/4);
+                if (!(FPTOINT(player.x) & 0b111)) {
+                    if (FPTOINT(player.x) & 0b1000) {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_1Tiles, larry_lado_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_1Pal, larry_lado_1PalLen/4);
+                    }
+                    else {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_2Tiles, larry_lado_2TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_2Pal, larry_lado_2PalLen/4);
+                    }
+                }
                 break;
             case DIR_DOWN:
-                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frenteTiles, larry_frenteTilesLen/4);
-                DMA3Copy(OBJ_PALETTE_POINTER, larry_frentePal, larry_frentePalLen/4);
+                if (!(FPTOINT(player.y) & 0b111)) {
+                    if (FPTOINT(player.y) & 0b1000) {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+                    }
+                    else {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_2Tiles, larry_frente_2TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_2Pal, larry_frente_2PalLen/4);
+                    }
+                }
                 break;
             case DIR_RIGHT:
                 OAM_ATTRIBS[1] &= ~BIT12;
-                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_ladoTiles, larry_ladoTilesLen/4);
-                DMA3Copy(OBJ_PALETTE_POINTER, larry_ladoPal, larry_ladoPalLen/4);
+                if (!(FPTOINT(player.x) & 0b111)) {
+                    if (FPTOINT(player.x) & 0b1000) {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_1Tiles, larry_lado_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_1Pal, larry_lado_1PalLen/4);
+                    }
+                    else {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_2Tiles, larry_lado_2TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_2Pal, larry_lado_2PalLen/4);
+                    }
+                }
                 break;
         }
 
@@ -835,6 +970,7 @@ reset_game:
         }
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
+        frame++;
     }
 
     return 0;
