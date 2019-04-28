@@ -815,9 +815,10 @@ reset_game:
                 }
             }
             if (~REG_KEYPAD & (BUTTON_A|BUTTON_B)) {
-                if (playerBulletsLen < 10 && !player.bullet_timer && player.mana >= 5) {
+                if (playerBulletsLen < 10 && !player.bullet_timer && ((player.mana >= 5 && (~REG_KEYPAD & BUTTON_A)) || (player.mana > 50 && (~REG_KEYPAD & BUTTON_B)))) {
                     player.bullet_timer = 20;
-                    player.mana -= 5;
+                    if (~REG_KEYPAD & BUTTON_B) player.mana -= 50;
+                    else player.mana -= 5;
 
                     playerBullets[playerBulletsLen].x = player.x;
                     playerBullets[playerBulletsLen].y = player.y;
