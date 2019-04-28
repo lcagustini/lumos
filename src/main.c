@@ -164,15 +164,32 @@ void updateBullets() {
         }
 
         for (int j = 0; j < monstersLen; j++) {
-            if(playerBullets[i].x + 1 < monsters[j].x + INTTOFP(16) &&
-                    playerBullets[i].x + 1 + INTTOFP(14) > monsters[j].x &&
-                    playerBullets[i].y + 1 < monsters[j].y + INTTOFP(16) &&
-                    playerBullets[i].y + 1 + INTTOFP(14) > monsters[j].y)
+            if(playerBullets[i].x + INTTOFP(2) < monsters[j].x + INTTOFP(2 + 12) &&
+                    playerBullets[i].x + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].x &&
+                    playerBullets[i].y + INTTOFP(2) < monsters[j].y + INTTOFP(2 + 12) &&
+                    playerBullets[i].y + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].y)
             {
                 monsters[j].health--;
             }
         }
     }
+}
+
+bool collidesWithOtherMonsters(u8 index) {
+    Monster a = monsters[index];
+    for (u8 i = 0; i < monstersLen; i++) {
+        if (i == index) continue;
+        Monster b = monsters[i];
+        if(a.x + INTTOFP(2) < b.x + INTTOFP(12 + 2) &&
+                a.x + INTTOFP(12 + 2) > b.x + INTTOFP(2) &&
+                a.y + INTTOFP(2) < b.y + INTTOFP(12 + 2) &&
+                a.y + INTTOFP(12 + 2) > b.y + INTTOFP(2))
+        {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 void updateMonsters() {
@@ -194,17 +211,21 @@ void updateMonsters() {
         if (ABS(dx) > ABS(dy)) {
             if (dx < 0) {
                 monsters[i].x -= MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].x += MONSTER_SPEED;
             }
             else {
                 monsters[i].x += MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].x -= MONSTER_SPEED;
             }
         }
         else {
             if (dy < 0) {
                 monsters[i].y -= MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].y += MONSTER_SPEED;
             }
             else {
                 monsters[i].y += MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].y -= MONSTER_SPEED;
             }
         }
     }
