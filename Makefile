@@ -20,6 +20,7 @@ gfx: force
 	grit gfx/larry_tras_2.png -o src/gfx/larry_tras_2
 	grit gfx/lumos.png -o src/gfx/lumos
 	grit gfx/lumos_1.png -o src/gfx/lumos_1
+	grit gfx/patrono_1.png -o src/gfx/patrono_1
 	grit gfx/hud.png -o src/gfx/hud
 	grit gfx/vela_acesa_1.png -o src/gfx/vela_acesa_1
 	grit gfx/vela_acesa_2.png -o src/gfx/vela_acesa_2
