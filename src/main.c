@@ -522,7 +522,7 @@ reset_game:
 
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
-    player.mana = 100;
+    player.mana = 50;
     player.health = 100;
 
     { //Player
@@ -616,7 +616,7 @@ reset_game:
 
         if (player.bullet_timer) player.bullet_timer--;
         if (player.mana_timer) player.mana_timer--;
-        else if (monstersLen && player.mana < 100) {
+        else if (monstersLen && player.mana < 50) {
             player.mana_timer = 20;
             player.mana++;
         }
