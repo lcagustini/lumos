@@ -6,6 +6,7 @@
 #include "gfx/bullet.h"
 
 #include <stdbool.h>
+#include <assert.h>
 
 #define INTTOFP(a) (a<<8)
 #define FPTOINT(a) (a>>8)
@@ -18,14 +19,47 @@
 struct {
     u16 x;
     u16 y;
+    // TODO: health
+    // TODO: lightfulness ?
 } player = {0};
 
-struct {
+typedef struct {
     u16 x;
     u16 y;
     u8 health;
-} monsters[50] = {0};
+    // TODO: monster type
+} Monster;
+Monster monsters[50] = {0};
 u8 monstersLen = 0;
+
+typedef enum {
+    INVALID_ROOM,
+
+    DEFAULT_ROOM,
+    DOOR_ROOM
+} RoomType;
+
+typedef struct {
+    u8 x;
+    u8 y;
+    // TODO: monster type
+} SpawnLoc;
+
+typedef struct {
+    RoomType type;
+    SpawnLoc monsterSpawns[10];
+    u8 monsterSpawnsLen;
+    // TODO: itens
+    // TODO: light sources
+} Room;
+Room rooms[10][10] = {0};
+
+#define STARTING_ROOM_X 5
+#define STARTING_ROOM_Y 5
+
+u8 currentRoomX = STARTING_ROOM_X;
+u8 currentRoomY = STARTING_ROOM_Y;
+
 
 typedef enum {
     SCROLL_UP,
@@ -65,13 +99,71 @@ void updateMonsters() {
     }
 }
 
-void scroll(ScrollDir dir) {
-    { //Room_door
-        DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, room_doorTilesLen/4);
-        DMA3Copy(BG_MAP_VRAM_BASE16, room_doorMap, room_doorMapLen/4);
-        DMA3Copy(BG_PALETTE_POINTER + 32, room_doorPal, room_doorPalLen/4);
+void changeRoom(Room r) {
+    // change monsters
+    monstersLen = r.monsterSpawnsLen;
+    for (u8 i = 0; i < monstersLen; i++) {
+        Monster m = {.x = r.monsterSpawns[i].x, .y = r.monsterSpawns[i].y, .health = 10}; // TODO: remove hardcoded health
+        monsters[i] = m;
+    }
 
-        REG_BG1CNT = BIT02 | BIT12 | BIT14 | BIT15;
+    // TODO: change itens
+    // TODO: change light sources
+}
+
+void scroll(ScrollDir dir) {
+    switch (dir) {
+        case SCROLL_UP:
+            if (rooms[currentRoomX][currentRoomY-1].type != INVALID_ROOM) currentRoomY--;
+            else return;
+            break;
+        case SCROLL_LEFT:
+            if (rooms[currentRoomX-1][currentRoomY].type != INVALID_ROOM) currentRoomX--;
+            else return;
+            break;
+        case SCROLL_DOWN:
+            if (rooms[currentRoomX][currentRoomY+1].type != INVALID_ROOM) currentRoomY++;
+            else return;
+            break;
+        case SCROLL_RIGHT:
+            if (rooms[currentRoomX+1][currentRoomY].type != INVALID_ROOM) currentRoomX++;
+            else return;
+            break;
+    }
+
+    u16 tilesLen, mapLen, palLen;
+
+    switch (rooms[currentRoomX][currentRoomY].type) {
+        case INVALID_ROOM:
+            assert(false);
+        case DEFAULT_ROOM:
+            {
+                tilesLen = roomTilesLen/4;
+                mapLen = roomMapLen/4;
+                palLen = roomPalLen/4;
+                
+                DMA3Copy(BG_TILE_VRAM_BASE1, roomTiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE16, roomMap, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 32, roomPal, palLen);
+
+                REG_BG1CNT = BIT02 | BIT12 | BIT14 | BIT15;
+            }
+            break;
+        case DOOR_ROOM:
+            {
+                tilesLen = room_doorTilesLen/4;
+                mapLen = room_doorMapLen/4;
+                palLen = room_doorPalLen/4;
+                
+                DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, tilesLen);
+                DMA3Copy(BG_MAP_VRAM_BASE16, room_doorMap, mapLen);
+                DMA3Copy(BG_PALETTE_POINTER + 32, room_doorPal, palLen);
+
+                REG_BG1CNT = BIT02 | BIT12 | BIT14 | BIT15;
+            }
+            break;
+        default:
+            assert(false);
     }
 
     u16 scroll;
@@ -144,10 +236,10 @@ void scroll(ScrollDir dir) {
             break;
     }
 
-    { //Room_door
-        DMA3Copy(BG_TILE_VRAM_BASE0, BG_TILE_VRAM_BASE1, room_doorTilesLen/4);
-        DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE16, room_doorMapLen/4);
-        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32, room_doorPalLen/4);
+    {
+        DMA3Copy(BG_TILE_VRAM_BASE0, BG_TILE_VRAM_BASE1, tilesLen);
+        DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE16, mapLen);
+        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32, palLen);
 
         REG_BG0HOFS = 0;
         REG_BG0VOFS = 0;
@@ -155,7 +247,31 @@ void scroll(ScrollDir dir) {
         REG_BG1HOFS = 0;
         REG_BG1VOFS = 0;
     }
+
+    changeRoom(rooms[currentRoomX][currentRoomY]);
 }
+
+void generateRooms() {
+    {
+        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2 };
+        rooms[STARTING_ROOM_X][STARTING_ROOM_Y] = r;
+    }
+
+    {
+        Room r = { DEFAULT_ROOM, {{40, 20}, {80, 120}}, 2 };
+        rooms[STARTING_ROOM_X+1][STARTING_ROOM_Y] = r;
+    }
+
+    {
+        Room r = { DEFAULT_ROOM, {{80, 10}, {80, 10}}, 2 };
+        rooms[STARTING_ROOM_X][STARTING_ROOM_Y+1] = r;
+    }
+
+    {
+        Room r = { DEFAULT_ROOM, {{100, 120}}, 1 };
+        rooms[STARTING_ROOM_X+1][STARTING_ROOM_Y+1] = r;
+    }
+};
 
 int main() {
     REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT12; //Mode 0 + BG0-2 + OBJ + 1D OBJ Mapping
@@ -165,7 +281,7 @@ int main() {
 
     monsters[0].x = INTTOFP(50);
     monsters[0].y = INTTOFP(50);
-    monsters[0].health = 10;
+    monsters[0].health = 10; // TODO: remove hardcoded health
     monstersLen = 1;
 
     { //Ball
@@ -189,6 +305,10 @@ int main() {
 
         REG_BG0CNT = BIT09 | BIT11 | BIT14 | BIT15;
     }
+
+    generateRooms();
+
+    changeRoom(rooms[STARTING_ROOM_X][STARTING_ROOM_Y]);
 
     while(1) {
         if (~REG_KEYPAD & KEYPAD_UP) {
