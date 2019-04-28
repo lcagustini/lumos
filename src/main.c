@@ -20,6 +20,20 @@
 #include "gfx/larry_tras_1.h"
 #include "gfx/larry_tras_2.h"
 
+#include "gfx/ronaldo_frente_1.h"
+#include "gfx/ronaldo_frente_2.h"
+#include "gfx/ronaldo_lado_1.h"
+#include "gfx/ronaldo_lado_2.h"
+#include "gfx/ronaldo_tras_1.h"
+#include "gfx/ronaldo_tras_2.h"
+
+#include "gfx/lorraine_frente_1.h"
+#include "gfx/lorraine_frente_2.h"
+#include "gfx/lorraine_lado_1.h"
+#include "gfx/lorraine_lado_2.h"
+#include "gfx/lorraine_tras_1.h"
+#include "gfx/lorraine_tras_2.h"
+
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
@@ -691,8 +705,20 @@ reset_game:
     player.health = 100;
 
     { //Player
-        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
-        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+        switch (character) {
+            case LARRY:
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+                break;
+            case LORRAINE:
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_frente_1Tiles, lorraine_frente_1TilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_frente_1Pal, lorraine_frente_1PalLen/4);
+                break;
+            case RONALDO:
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_frente_1Tiles, ronaldo_frente_1TilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_frente_1Pal, ronaldo_frente_1PalLen/4);
+                break;
+        }
 
         OAM_ATTRIBS[1] = BIT14;
         OAM_ATTRIBS[2] = BIT00 | BIT10 | BIT11;
@@ -922,12 +948,36 @@ reset_game:
             case DIR_UP:
                 if (!(FPTOINT(player.y) & 0b111)) {
                     if (FPTOINT(player.y) & 0b1000) {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_tras_1Tiles, larry_tras_1TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_tras_1Pal, larry_tras_1PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_tras_1Tiles, ronaldo_tras_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_tras_1Pal, ronaldo_tras_1PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_tras_1Tiles, lorraine_tras_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_tras_1Pal, lorraine_tras_1PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_tras_1Tiles, larry_tras_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_tras_1Pal, larry_tras_1PalLen/4);
+                                break;
+                        }
                     }
                     else {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_tras_2Tiles, larry_tras_2TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_tras_2Pal, larry_tras_2PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_tras_2Tiles, ronaldo_tras_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_tras_2Pal, ronaldo_tras_2PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_tras_2Tiles, lorraine_tras_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_tras_2Pal, lorraine_tras_2PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_tras_2Tiles, larry_tras_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_tras_2Pal, larry_tras_2PalLen/4);
+                                break;
+                        }
                     }
                 }
                 break;
@@ -935,24 +985,72 @@ reset_game:
                 OAM_ATTRIBS[1] |= BIT12;
                 if (!(FPTOINT(player.x) & 0b111)) {
                     if (FPTOINT(player.x) & 0b1000) {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_1Tiles, larry_lado_1TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_1Pal, larry_lado_1PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_lado_1Tiles, ronaldo_lado_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_lado_1Pal, ronaldo_lado_1PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_lado_1Tiles, lorraine_lado_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_lado_1Pal, lorraine_lado_1PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_1Tiles, larry_lado_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_1Pal, larry_lado_1PalLen/4);
+                                break;
+                        }
                     }
                     else {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_2Tiles, larry_lado_2TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_2Pal, larry_lado_2PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_lado_2Tiles, ronaldo_lado_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_lado_2Pal, ronaldo_lado_2PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_lado_2Tiles, lorraine_lado_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_lado_2Pal, lorraine_lado_2PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_2Tiles, larry_lado_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_2Pal, larry_lado_2PalLen/4);
+                                break;
+                        }
                     }
                 }
                 break;
             case DIR_DOWN:
                 if (!(FPTOINT(player.y) & 0b111)) {
                     if (FPTOINT(player.y) & 0b1000) {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_frente_1Tiles, ronaldo_frente_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_frente_1Pal, ronaldo_frente_1PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_frente_1Tiles, lorraine_frente_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_frente_1Pal, lorraine_frente_1PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+                                break;
+                        }
                     }
                     else {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_2Tiles, larry_frente_2TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_2Pal, larry_frente_2PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_frente_2Tiles, ronaldo_frente_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_frente_2Pal, ronaldo_frente_2PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_frente_2Tiles, lorraine_frente_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_frente_2Pal, lorraine_frente_2PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_2Tiles, larry_frente_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_2Pal, larry_frente_2PalLen/4);
+                                break;
+                        }
                     }
                 }
                 break;
@@ -960,12 +1058,36 @@ reset_game:
                 OAM_ATTRIBS[1] &= ~BIT12;
                 if (!(FPTOINT(player.x) & 0b111)) {
                     if (FPTOINT(player.x) & 0b1000) {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_1Tiles, larry_lado_1TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_1Pal, larry_lado_1PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_lado_1Tiles, ronaldo_lado_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_lado_1Pal, ronaldo_lado_1PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_lado_1Tiles, lorraine_lado_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_lado_1Pal, lorraine_lado_1PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_1Tiles, larry_lado_1TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_1Pal, larry_lado_1PalLen/4);
+                                break;
+                        }
                     }
                     else {
-                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_2Tiles, larry_lado_2TilesLen/4);
-                        DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_2Pal, larry_lado_2PalLen/4);
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_lado_2Tiles, ronaldo_lado_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_lado_2Pal, ronaldo_lado_2PalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_lado_2Tiles, lorraine_lado_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, lorraine_lado_2Pal, lorraine_lado_2PalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_lado_2Tiles, larry_lado_2TilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER, larry_lado_2Pal, larry_lado_2PalLen/4);
+                                break;
+                        }
                     }
                 }
                 break;

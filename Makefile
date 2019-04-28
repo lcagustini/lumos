@@ -18,6 +18,18 @@ gfx: force
 	grit gfx/larry_lado_2.png -o src/gfx/larry_lado_2
 	grit gfx/larry_tras_1.png -o src/gfx/larry_tras_1
 	grit gfx/larry_tras_2.png -o src/gfx/larry_tras_2
+	grit gfx/ronaldo_frente_1.png -o src/gfx/ronaldo_frente_1
+	grit gfx/ronaldo_frente_2.png -o src/gfx/ronaldo_frente_2
+	grit gfx/ronaldo_lado_1.png -o src/gfx/ronaldo_lado_1
+	grit gfx/ronaldo_lado_2.png -o src/gfx/ronaldo_lado_2
+	grit gfx/ronaldo_tras_1.png -o src/gfx/ronaldo_tras_1
+	grit gfx/ronaldo_tras_2.png -o src/gfx/ronaldo_tras_2
+	grit gfx/lorraine_frente_1.png -o src/gfx/lorraine_frente_1
+	grit gfx/lorraine_frente_2.png -o src/gfx/lorraine_frente_2
+	grit gfx/lorraine_lado_1.png -o src/gfx/lorraine_lado_1
+	grit gfx/lorraine_lado_2.png -o src/gfx/lorraine_lado_2
+	grit gfx/lorraine_tras_1.png -o src/gfx/lorraine_tras_1
+	grit gfx/lorraine_tras_2.png -o src/gfx/lorraine_tras_2
 	grit gfx/lumos.png -o src/gfx/lumos
 	grit gfx/lumos_1.png -o src/gfx/lumos_1
 	grit gfx/patrono_1.png -o src/gfx/patrono_1
