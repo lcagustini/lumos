@@ -1,9 +1,10 @@
 #include "gba.h"
-#include "gfx/ball.h"
+#include "bios.h"
 #include "gfx/room.h"
 #include "gfx/room_door.h"
 #include "gfx/enemy.h"
 #include "gfx/lumos.h"
+#include "gfx/hud.h"
 
 #include "gfx/larry_frente.h"
 #include "gfx/larry_lado.h"
@@ -11,6 +12,7 @@
 
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
 
 #define INTTOFP(a) (a<<8)
 #define FPTOINT(a) (a>>8)
@@ -210,6 +212,48 @@ void updateMonsters() {
     }
 }
 
+void drawGUI() {
+    {
+        s32 step = player.mana/10;
+
+        BG_MAP_VRAM_BASE24[2] = 2 | BIT13;
+        BG_MAP_VRAM_BASE24[3] = 3 | BIT13;
+        BG_MAP_VRAM_BASE24[4] = 3 | BIT13;
+        BG_MAP_VRAM_BASE24[5] = 3 | BIT13;
+        BG_MAP_VRAM_BASE24[6] = 2 | BIT10 | BIT13;
+        if (step == 1) {
+            BG_MAP_VRAM_BASE24[2] = 12 | BIT13;
+        }
+        if (step > 1) {
+            BG_MAP_VRAM_BASE24[2] = 8 | BIT13;
+        }
+        if (step == 3) {
+            BG_MAP_VRAM_BASE24[3] = 15 | BIT13;
+        }
+        if (step > 3) {
+            BG_MAP_VRAM_BASE24[3] = 9 | BIT13;
+        }
+        if (step == 5) {
+            BG_MAP_VRAM_BASE24[4] = 11 | BIT13;
+        }
+        if (step > 5) {
+            BG_MAP_VRAM_BASE24[4] = 13 | BIT13;
+        }
+        if (step == 7) {
+            BG_MAP_VRAM_BASE24[5] = 6 | BIT13;
+        }
+        if (step > 7) {
+            BG_MAP_VRAM_BASE24[5] = 16 | BIT13;
+        }
+        if (step == 9) {
+            BG_MAP_VRAM_BASE24[6] = 7 | BIT13;
+        }
+        if (step > 9) {
+            BG_MAP_VRAM_BASE24[6] = 1 | BIT13;
+        }
+    }
+}
+
 void changeRoom(Room r) {
     // change monsters
     monstersLen = r.monsterSpawnsLen;
@@ -222,7 +266,7 @@ void changeRoom(Room r) {
         DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
 
         OAM_ATTRIBS[5 + i*4] = BIT14;
-        OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT12;
+        OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT11 | BIT12;
     }
 
     // TODO: change itens
@@ -275,10 +319,10 @@ bool scroll(ScrollDir dir) {
                 palLen = roomPalLen/4;
 
                 DMA3Copy(BG_TILE_VRAM_BASE1, roomTiles, tilesLen);
-                DMA3Copy(BG_MAP_VRAM_BASE16, roomMap, mapLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, roomMap, mapLen);
                 DMA3Copy(BG_PALETTE_POINTER + 32, roomPal, palLen);
 
-                REG_BG1CNT = BIT02 | BIT12 | BIT14 | BIT15;
+                REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
             break;
         case DOOR_ROOM:
@@ -288,10 +332,10 @@ bool scroll(ScrollDir dir) {
                 palLen = room_doorPalLen/4;
 
                 DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, tilesLen);
-                DMA3Copy(BG_MAP_VRAM_BASE16, room_doorMap, mapLen);
+                DMA3Copy(BG_MAP_VRAM_BASE17, room_doorMap, mapLen);
                 DMA3Copy(BG_PALETTE_POINTER + 32, room_doorPal, palLen);
 
-                REG_BG1CNT = BIT02 | BIT12 | BIT14 | BIT15;
+                REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
             break;
         default:
@@ -370,7 +414,7 @@ bool scroll(ScrollDir dir) {
 
     {
         DMA3Copy(BG_TILE_VRAM_BASE0, BG_TILE_VRAM_BASE1, tilesLen);
-        DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE16, mapLen);
+        DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE17, mapLen);
         DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32, palLen);
 
         REG_BG0HOFS = 0;
@@ -414,23 +458,26 @@ int main() {
     player.y = INTTOFP(10);
     player.mana = 100;
 
-    { //Ball
-        DMA3Copy(OBJ_TILE_VRAM + 32*1, ballTiles, ballTilesLen/4);
-        DMA3Copy(OBJ_PALETTE_POINTER, ballPal, ballPalLen/4);
-
+    { //Player
         OAM_ATTRIBS[1] = BIT14;
-        OAM_ATTRIBS[2] = BIT00;
+        OAM_ATTRIBS[2] = BIT00 | BIT10 | BIT11;
     }
     { //Room
         DMA3Copy(BG_TILE_VRAM_BASE0, roomTiles, roomTilesLen/4);
         DMA3Copy(BG_MAP_VRAM_BASE10, roomMap, roomMapLen/4);
         DMA3Copy(BG_PALETTE_POINTER, roomPal, roomPalLen/4);
 
-        REG_BG0CNT = BIT09 | BIT11 | BIT14 | BIT15;
+        REG_BG0CNT = BIT00 | BIT01 | BIT09 | BIT11 | BIT14 | BIT15;
     }
     { //Bullet
         DMA3Copy(OBJ_TILE_VRAM + 32*9, lumosTiles, lumosTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 64, lumosPal, lumosPalLen/4);
+    }
+    { //HUD
+        DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 64, hudPal, hudPalLen/4);
+
+        REG_BG2CNT = BIT03 | BIT11 | BIT12;
     }
 
     generateRooms();
@@ -506,6 +553,8 @@ int main() {
         while(!(REG_DISPSTAT & BIT00)); //Wait VBlank migue
         // ACTIVATE
 
+        drawGUI();
+
         if (FPTOINT(player.x) <= FPTOINT(PLAYER_SPEED)) {
             if (!scroll(SCROLL_LEFT)) player.x += PLAYER_SPEED;
         }
@@ -552,7 +601,7 @@ int main() {
         for (int i = 0; i < playerBulletsLen; i++) {
             OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
             OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
-            OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT13;
+            OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
         }
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
