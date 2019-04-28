@@ -14,6 +14,10 @@
 #include "gfx/lontra_1_hor.h"
 #include "gfx/lontra_1_vert.h"
 #include "gfx/hud.h"
+#include "gfx/aragog_32_1.h"
+#include "gfx/aragog_32_1ho.h"
+#include "gfx/big_spider.h"
+#include "gfx/big_spider_hor.h"
 
 #include "gfx/vela_apagada_1.h"
 #include "gfx/vela_acesa_1.h"
@@ -52,7 +56,8 @@
 #define ABS(a) ((a)<0 ? (-a) : (a))
 
 #define PLAYER_SPEED (0b1011 << 5)
-#define MONSTER_SPEED (0b111 << 4)
+//#define MONSTER_SPEED (0b111 << 4)
+#define MONSTER_SPEED (0b11 << 6)
 #define BULLET_SPEED (0b101 << 7)
 
 #define DIAGONAL_BULLET_SPEED (u16)((FPTOINT(BULLET_SPEED)*1.41/2.0)*256)
@@ -106,11 +111,18 @@ struct {
     PlayerDir dir;
 } player;
 
+typedef enum {
+    INVALID_MONSTER = 0,
+    DEMENTOR,
+    ARAGOG,
+    BIG_SPIDER
+} MonsterType;
+
 typedef struct {
     u16 x;
     u16 y;
     s8 health;
-    // TODO: monster type
+    MonsterType type;
 } Monster;
 Monster monsters[50];
 u8 monstersLen;
@@ -125,7 +137,6 @@ typedef enum {
 typedef struct {
     u8 x;
     u8 y;
-    // TODO: monster type
 } SpawnLoc;
 
 typedef struct {
@@ -140,6 +151,7 @@ typedef struct {
     u8 monsterSpawnsLen;
     Light lightSources[4];
     u8 lightSourcesLen;
+    MonsterType monsterType;
     // TODO: itens
 } Room;
 Room rooms[10][10];
@@ -255,12 +267,12 @@ bool collidesWithOtherMonsters(u8 index) {
     return false;
 }
 
-bool collidesWithPlayer(u8 index) {
+bool collidesWithPlayer(u8 index, u8 xoff, u8 yoff, u8 w, u8 h) {
     Monster m = monsters[index];
-    if(m.x + INTTOFP(4) < player.x + INTTOFP(8 + 4) &&
-            m.x + INTTOFP(8 + 4) > player.x + INTTOFP(4) &&
-            m.y + INTTOFP(4) < player.y + INTTOFP(8 + 4) &&
-            m.y + INTTOFP(8 + 4) > player.y + INTTOFP(4))
+    if(m.x + INTTOFP(xoff) < player.x + INTTOFP(8 + 4) &&
+            m.x + INTTOFP(w + xoff) > player.x + INTTOFP(4) &&
+            m.y + INTTOFP(yoff) < player.y + INTTOFP(8 + 4) &&
+            m.y + INTTOFP(h + yoff) > player.y + INTTOFP(4))
     {
         return true;
     }
@@ -280,47 +292,88 @@ void updateMonsters() {
             rooms[cy][cx].monsterSpawns[i] = rooms[cy][cx].monsterSpawns[--rooms[cy][cx].monsterSpawnsLen];
         }
 
+        u8 mxoff, myoff, mw, mh, mdmg;
+        switch (monsters[i].type) {
+            case DEMENTOR:
+                mxoff = 4;
+                myoff = 4;
+                mw = 16 - 4*2;
+                mh = 16 - 4*2;
+                mdmg = 1;
+                break;
+            case ARAGOG:
+                mxoff = 6;
+                myoff = 6;
+                mw = 32 - 6 * 2;
+                mh = 32 - 6 * 2;
+                mdmg = 2;
+                break;
+            case BIG_SPIDER:
+                mxoff = 7;
+                myoff = 7;
+                mw = 64 - 7 * 2;
+                mh = 64 - 7 * 2;
+                mdmg = 4;
+                break;
+            default:
+                assert(false);
+        }
+
         s32 dx = (s32)player.x - (s32)monsters[i].x;
         s32 dy = (s32)player.y - (s32)monsters[i].y;
 
         if (ABS(dx) > ABS(dy)) {
             if (dx < 0) {
                 monsters[i].x -= MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] &= ~BIT12;
+                    OAM_ATTRIBS[6 + i*4] = 85 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].x += MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].x += MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
             else {
                 monsters[i].x += MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] |= BIT12;
+                    OAM_ATTRIBS[6 + i*4] = 85 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].x -= MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].x -= MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
         }
         else {
             if (dy < 0) {
                 monsters[i].y -= MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] |= BIT13;
+                    OAM_ATTRIBS[6 + i*4] = 69 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].y += MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].y += MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
             else {
                 monsters[i].y += MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] &= ~BIT13;
+                    OAM_ATTRIBS[6 + i*4] = 69 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].y -= MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].y -= MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
         }
-
-        // collision with player
     }
 }
 
@@ -460,15 +513,34 @@ void changeRoom(Room r) {
     // change monsters
     monstersLen = r.monsterSpawnsLen;
     for (u8 i = 0; i < monstersLen; i++) {
-        Monster m = {.x = INTTOFP(r.monsterSpawns[i].x), .y = INTTOFP(r.monsterSpawns[i].y), .health = 10}; // TODO: remove hardcoded health
+        Monster m = {.x = INTTOFP(r.monsterSpawns[i].x), .y = INTTOFP(r.monsterSpawns[i].y), .type = r.monsterType}; // TODO: remove hardcoded health
+
+        switch (r.monsterType) {
+            case INVALID_MONSTER:
+                assert(false);
+            case DEMENTOR:
+                m.health = 10;
+                DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+                OAM_ATTRIBS[5 + i*4] = BIT14;
+                OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT11 | BIT12;
+                break;
+            case ARAGOG:
+                m.health = 20;
+                DMA3Copy(OBJ_TILE_VRAM + 32*69, aragog_32_1Tiles, aragog_32_1TilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1Pal, aragog_32_1PalLen/4);
+                OAM_ATTRIBS[5 + i*4] = BIT15;
+                OAM_ATTRIBS[6 + i*4] = 69 | BIT11 | BIT12;
+                break;
+            case BIG_SPIDER:
+                m.health = 30;
+                // TODO
+                break;
+            default:
+                assert(false);
+        }
+
         monsters[i] = m;
-
-        // TODO: switch on monster type
-        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
-        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
-
-        OAM_ATTRIBS[5 + i*4] = BIT14;
-        OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT11 | BIT12;
     }
 
     // TODO: change itens
@@ -668,22 +740,22 @@ bool scroll(ScrollDir dir) {
 
 void generateRooms() {
     {
-        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2, {{70, 70, 1}, {20, 80, 1}, {160, 60, 1}, {80, 90, 1}}, 4 };
+        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2, {{70, 70, 1}, {20, 80, 1}, {160, 60, 1}, {80, 90, 1}}, 4, .monsterType = DEMENTOR};
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{40, 20}, {80, 120}}, 2 };
+        Room r = { DEFAULT_ROOM, {{40, 20}, {80, 120}}, 2, .monsterType = DEMENTOR};
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{80, 10}, {180, 10}}, 2 };
+        Room r = { DEFAULT_ROOM, {{80, 10}, {180, 10}}, 2, .monsterType = ARAGOG};
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X+1] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{100, 120}, {20, 20}, {70, 130}}, 3 };
+        Room r = { DEFAULT_ROOM, {{100, 120}, {20, 20}, {70, 130}}, 3, .monsterType = ARAGOG};
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X+1] = r;
     }
 };
@@ -775,11 +847,11 @@ reset_game:
         DMA3Copy(OBJ_TILE_VRAM + 32*49, lumos_1_45Tiles, lumos_1_45TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 64, lumos_1_45Pal, lumos_1_45PalLen/4);
     }
-    { //Candle
+    { // Candle
         DMA3Copy(OBJ_TILE_VRAM + 32*13, vela_apagada_1Tiles, vela_apagada_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 96, vela_apagada_1Pal, vela_apagada_1PalLen/4);
     }
-    { //Candle
+    { // Candle
         DMA3Copy(OBJ_TILE_VRAM + 32*21, vela_acesa_1Tiles, vela_acesa_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 128, vela_acesa_1Pal, vela_acesa_1PalLen/4);
     }
@@ -790,6 +862,14 @@ reset_game:
     { // Patrono V
         DMA3Copy(OBJ_TILE_VRAM + 32*53, patrono_1_vertTiles, patrono_1_vertTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1_vertPal, patrono_1_vertPalLen/4);
+    }
+    { // Aragog V
+        DMA3Copy(OBJ_TILE_VRAM + 32*69, aragog_32_1Tiles, aragog_32_1TilesLen/4);
+        //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1Pal, aragog_32_1PalLen/4);
+    }
+    { // Aragog H
+        DMA3Copy(OBJ_TILE_VRAM + 32*85, aragog_32_1hoTiles, aragog_32_1hoTilesLen/4);
+        //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1hoPal, aragog_32_1hoPalLen/4);
     }
     { // HUD
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
@@ -972,17 +1052,21 @@ reset_game:
                 }
             }
         }
-        if (!((frame + 10) & 0b1111)) {
-            if ((frame + 10) & 0b10000) {
-                {
-                    DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
-                    DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+
+        // monster animation (TODO: other monster animations)
+        if (rooms[currentRoomY][currentRoomX].monsterType == DEMENTOR) {
+            if (!((frame + 10) & 0b1111)) {
+                if ((frame + 10) & 0b10000) {
+                    {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+                    }
                 }
-            }
-            else {
-                {
-                    DMA3Copy(OBJ_TILE_VRAM + 32*5, enemy_2Tiles, enemy_2TilesLen/4);
-                    DMA3Copy(OBJ_PALETTE_POINTER + 32, enemy_2Pal, enemy_2PalLen/4);
+                else {
+                    {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemy_2Tiles, enemy_2TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemy_2Pal, enemy_2PalLen/4);
+                    }
                 }
             }
         }
