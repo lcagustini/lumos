@@ -18,22 +18,18 @@ typedef enum {
     SCROLL_RIGHT,
 } ScrollDir;
 
+void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
+    REG_DMA3SAD = src;
+    REG_DMA3DAD = dest;
+    REG_DMA3CNT_L = size;
+    REG_DMA3CNT_H = BIT10 | BIT15;
+}
+
 void scroll(ScrollDir dir) {
     { //Room_door
-        REG_DMA3SAD = room_doorTiles;
-        REG_DMA3DAD = BG_TILE_VRAM_BASE1;
-        REG_DMA3CNT_L = room_doorTilesLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = room_doorMap;
-        REG_DMA3DAD = BG_MAP_VRAM_BASE16;
-        REG_DMA3CNT_L = room_doorMapLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = room_doorPal;
-        REG_DMA3DAD = BG_PALETTE_POINTER + 32;
-        REG_DMA3CNT_L = room_doorPalLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
+        DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, room_doorTilesLen/4);
+        DMA3Copy(BG_MAP_VRAM_BASE16, room_doorMap, room_doorMapLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 32, room_doorPal, room_doorPalLen/4);
 
         REG_BG1CNT = BIT02 | BIT12 | BIT14 | BIT15;
     }
@@ -109,20 +105,9 @@ void scroll(ScrollDir dir) {
     }
 
     { //Room_door
-        REG_DMA3SAD = BG_TILE_VRAM_BASE1;
-        REG_DMA3DAD = BG_TILE_VRAM_BASE0;
-        REG_DMA3CNT_L = room_doorTilesLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = BG_MAP_VRAM_BASE16;
-        REG_DMA3DAD = BG_MAP_VRAM_BASE10;
-        REG_DMA3CNT_L = room_doorMapLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = BG_PALETTE_POINTER + 32;
-        REG_DMA3DAD = BG_PALETTE_POINTER;
-        REG_DMA3CNT_L = room_doorPalLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
+        DMA3Copy(BG_TILE_VRAM_BASE0, BG_TILE_VRAM_BASE1, room_doorTilesLen/4);
+        DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE16, room_doorMapLen/4);
+        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32, room_doorPalLen/4);
 
         REG_BG0HOFS = 0;
         REG_BG0VOFS = 0;
@@ -139,48 +124,23 @@ int main() {
     player.y = 10;
 
     { //Ball
-        REG_DMA3SAD = ballTiles;
-        REG_DMA3DAD = OBJ_TILE_VRAM + 32*1; //tilebase
-        REG_DMA3CNT_L = ballTilesLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = ballPal;
-        REG_DMA3DAD = OBJ_PALETTE_POINTER; //palette number
-        REG_DMA3CNT_L = ballPalLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
+        DMA3Copy(OBJ_TILE_VRAM + 32*1, ballTiles, ballTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER, ballPal, ballPalLen/4);
 
         OAM_ATTRIBS[1] = BIT14;
         OAM_ATTRIBS[2] = BIT00;
     }
     { //Enemy
-        REG_DMA3SAD = enemyTiles;
-        REG_DMA3DAD = OBJ_TILE_VRAM + 32*5; //tilebase
-        REG_DMA3CNT_L = enemyTilesLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = enemyPal;
-        REG_DMA3DAD = OBJ_PALETTE_POINTER + 32; //palette number
-        REG_DMA3CNT_L = enemyPalLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
+        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
 
         OAM_ATTRIBS[5] = BIT14;
         OAM_ATTRIBS[6] = BIT00 | BIT02 | BIT12;
     }
     { //Room
-        REG_DMA3SAD = roomTiles;
-        REG_DMA3DAD = BG_TILE_VRAM_BASE0;
-        REG_DMA3CNT_L = roomTilesLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = roomMap;
-        REG_DMA3DAD = BG_MAP_VRAM_BASE10;
-        REG_DMA3CNT_L = roomMapLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
-
-        REG_DMA3SAD = roomPal;
-        REG_DMA3DAD = BG_PALETTE_POINTER;
-        REG_DMA3CNT_L = roomPalLen/4; //Words to copy
-        REG_DMA3CNT_H = BIT10 | BIT15;
+        DMA3Copy(BG_TILE_VRAM_BASE0, roomTiles, roomTilesLen/4);
+        DMA3Copy(BG_MAP_VRAM_BASE10, roomMap, roomMapLen/4);
+        DMA3Copy(BG_PALETTE_POINTER, roomPal, roomPalLen/4);
 
         REG_BG0CNT = BIT09 | BIT11 | BIT14 | BIT15;
     }

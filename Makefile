@@ -1,6 +1,6 @@
 all: gfx
 	mkdir -p bin
-	/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc -mthumb-interwork -specs=gba.specs src/main.c src/gfx/room.s src/gfx/ball.s src/gfx/enemy.s src/gfx/room_door.s -o bin/main.o -O2 -Wno-int-conversion
+	/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc -mthumb-interwork -specs=gba.specs src/main.c src/gfx/room.s src/gfx/ball.s src/gfx/enemy.s src/gfx/room_door.s -o bin/main.o -O0 -Wno-int-conversion
 	/opt/devkitpro/devkitARM/bin/arm-none-eabi-objcopy -v -O binary bin/main.o main.gba
 	/opt/devkitpro/tools/bin/gbafix main.gba -tLumos -cTIHE -mTI -r1.0
 
