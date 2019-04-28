@@ -4,6 +4,7 @@
 #include "gfx/room_door.h"
 #include "gfx/enemy.h"
 #include "gfx/lumos.h"
+#include "gfx/patrono_1.h"
 #include "gfx/hud.h"
 
 #include "gfx/larry_frente.h"
@@ -108,6 +109,7 @@ struct {
     u16 x;
     u16 y;
     BulletDir dir;
+    bool patrono;
 } playerBullets[10];
 u8 playerBulletsLen;
 
@@ -168,12 +170,22 @@ void updateBullets() {
         }
 
         for (int j = 0; j < monstersLen; j++) {
-            if(playerBullets[i].x + INTTOFP(2) < monsters[j].x + INTTOFP(2 + 12) &&
-                    playerBullets[i].x + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].x &&
-                    playerBullets[i].y + INTTOFP(2) < monsters[j].y + INTTOFP(2 + 12) &&
-                    playerBullets[i].y + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].y)
-            {
-                monsters[j].health--;
+            if(playerBullets[i].patrono) {
+                if(playerBullets[i].x + INTTOFP(2) < monsters[j].x + INTTOFP(2 + 12) &&
+                        playerBullets[i].x + INTTOFP(2 + 30) > INTTOFP(2) + monsters[j].x &&
+                        playerBullets[i].y + INTTOFP(2) < monsters[j].y + INTTOFP(2 + 12) &&
+                        playerBullets[i].y + INTTOFP(2 + 30) > INTTOFP(2) + monsters[j].y)
+                {
+                    monsters[j].health--;
+                }
+            } else {
+                if(playerBullets[i].x + INTTOFP(2) < monsters[j].x + INTTOFP(2 + 12) &&
+                        playerBullets[i].x + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].x &&
+                        playerBullets[i].y + INTTOFP(2) < monsters[j].y + INTTOFP(2 + 12) &&
+                        playerBullets[i].y + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].y)
+                {
+                    monsters[j].health--;
+                }
             }
         }
     }
@@ -670,11 +682,15 @@ reset_game:
 
         REG_BG0CNT = BIT00 | BIT01 | BIT09 | BIT11 | BIT14 | BIT15;
     }
-    { //Bullet
+    { // Bullet
         DMA3Copy(OBJ_TILE_VRAM + 32*9, lumosTiles, lumosTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 64, lumosPal, lumosPalLen/4);
     }
-    { //HUD
+    { // Patrono
+        DMA3Copy(OBJ_TILE_VRAM + 32*29, patrono_1Tiles, patrono_1TilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1Pal, patrono_1PalLen/4);
+    }
+    { // HUD
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
         DMA3Copy(BG_PALETTE_POINTER + 64/2, hudPal, hudPalLen/4);
 
@@ -732,7 +748,7 @@ reset_game:
                     }
                 }
             }
-            if (~REG_KEYPAD & BUTTON_A) {
+            if (~REG_KEYPAD & (BUTTON_A|BUTTON_B)) {
                 if (playerBulletsLen < 10 && !player.bullet_timer && player.mana >= 5) {
                     player.bullet_timer = 20;
                     player.mana -= 5;
@@ -758,6 +774,7 @@ reset_game:
                                 break;
                         }
                     }
+                    playerBullets[playerBulletsLen].patrono = ~REG_KEYPAD & BUTTON_B;
 
                     playerBulletsLen++;
                 }
@@ -829,9 +846,15 @@ reset_game:
         }
 
         for (int i = 0; i < playerBulletsLen; i++) {
-            OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
-            OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
-            OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+            if (playerBullets[i].patrono) {
+                OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
+                OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
+                OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+            } else {
+                OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
+                OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+            }
         }
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
@@ -839,3 +862,4 @@ reset_game:
 
     return 0;
 }
+

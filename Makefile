@@ -16,6 +16,7 @@ gfx: force
 	grit gfx/larry_tras.png -o src/gfx/larry_tras
 	grit gfx/lumos.png -o src/gfx/lumos
 	grit gfx/lumos_1.png -o src/gfx/lumos_1
+	grit gfx/patrono_1.png -o src/gfx/patrono_1
 	grit gfx/hud.png -o src/gfx/hud
 
 clean:
