@@ -150,6 +150,8 @@ Room rooms[10][10];
 u8 currentRoomX = STARTING_ROOM_X;
 u8 currentRoomY = STARTING_ROOM_Y;
 
+s32 character_swap_timer;
+
 struct {
     u16 x;
     u16 y;
@@ -699,6 +701,7 @@ reset_game:
         currentRoomY = STARTING_ROOM_Y;
 
         frame = 0;
+        character_swap_timer = 0;
 
         memset((void*)OAM_ATTRIBS, 0, 128 * 4);
     }
@@ -822,7 +825,8 @@ reset_game:
                 player.dir = DIR_RIGHT;
                 dir |= BULLET_RIGHT;
             }
-            if (~REG_KEYPAD & BUTTON_SELECT) {
+            if ((~REG_KEYPAD & BUTTON_SELECT) && character_swap_timer <= 0) {
+                character_swap_timer = 20;
                 if (character == LARRY) {
                     character = LORRAINE;
                 }
@@ -831,6 +835,21 @@ reset_game:
                 }
                 else if (character == RONALDO) {
                     character = LARRY;
+                }
+
+                switch (character) {
+                    case LARRY:
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+                        break;
+                    case LORRAINE:
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_frente_1Tiles, lorraine_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, lorraine_frente_1Pal, lorraine_frente_1PalLen/4);
+                        break;
+                    case RONALDO:
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_frente_1Tiles, ronaldo_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_frente_1Pal, ronaldo_frente_1PalLen/4);
+                        break;
                 }
             }
 #define LIGHT_PICKUP_RANGE 20
@@ -1199,6 +1218,7 @@ reset_game:
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
         frame++;
+        if (character_swap_timer > 0) character_swap_timer--;
     }
 
     return 0;
