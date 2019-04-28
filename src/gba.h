@@ -384,7 +384,7 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define BG_MAP_VRAM_BASE30 ((vu16*)0x600F000)
 #define BG_MAP_VRAM_BASE31 ((vu16*)0x600F800)
 
-#define BG_PALETTE_POINTER ((vu8*)0x5000000)
+#define BG_PALETTE_POINTER ((vu16*)0x5000000)
 
 #endif	// _GBA_H
 

@@ -91,8 +91,9 @@ typedef struct {
     RoomType type;
     SpawnLoc monsterSpawns[10];
     u8 monsterSpawnsLen;
+    SpawnLoc lightSources[4];
+    u8 lightSourcesLen;
     // TODO: itens
-    // TODO: light sources
 } Room;
 Room rooms[10][10];
 
@@ -360,7 +361,48 @@ void changeRoom(Room r) {
     }
 
     // TODO: change itens
-    // TODO: change light sources
+
+    {
+#define THRESHOLD0 0
+#define THRESHOLD1 (8 * 8)
+#define THRESHOLD2 (16 * 16)
+#define THRESHOLD3 (36 * 32)
+        Room cur = rooms[currentRoomY][currentRoomX];
+        for (u16 j = 0; j < 640; j++) {
+            BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+        }
+        for (int i = 0; i < cur.lightSourcesLen; i++) {
+            s16 lx = cur.lightSources[i].x + 8;
+            s16 ly = cur.lightSources[i].y + 4;
+
+            for (u16 j = 0; j < 640; j++) {
+                s16 x = ((j & 0b11111) << 3) + 4;
+                if (x >= 240) continue;
+                s16 y = ((j >> 5) << 3) + 4;
+                s16 dx = x - lx;
+                s16 dy = y - ly;
+                u32 sqDist = dx * dx + dy * dy;
+                //u32 sqDist = ABS(dx) + ABS(dy);
+
+                u16 brightness = BG_MAP_VRAM_BASE10[j] & (BIT12|BIT13|BIT14|BIT15);
+                brightness >>= 12;
+
+                if (sqDist > THRESHOLD3) {
+                } else if (sqDist > THRESHOLD2 && brightness == 0) {
+                    BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+                    BG_MAP_VRAM_BASE10[j] |= (BIT14);
+                } else if (sqDist > THRESHOLD1 && 
+                        (brightness == 0 || brightness == 4)) {
+                    BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+                    BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT13);
+                } else {
+                    BG_MAP_VRAM_BASE10[j] &= ~(BIT12|BIT13|BIT14|BIT15);
+                    BG_MAP_VRAM_BASE10[j] |= (BIT12|BIT14);
+                }
+            }
+        }
+    }
+
 }
 
 bool scroll(ScrollDir dir) {
@@ -410,7 +452,21 @@ bool scroll(ScrollDir dir) {
 
                 DMA3Copy(BG_TILE_VRAM_BASE1, roomTiles, tilesLen);
                 DMA3Copy(BG_MAP_VRAM_BASE17, roomMap, mapLen);
-                DMA3Copy(BG_PALETTE_POINTER + 32, roomPal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, roomPal, palLen);
+                for (int i = 1; i < palLen * 2; i++) {
+                    vu16* ptr = (BG_PALETTE_POINTER + 32/2 + i);
+                    u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                    u8 green = ((*ptr) & 0b1111100000) >> 5;
+                    u8 blue = (*ptr) & 0b11111;
+                    u16 reduction = 17;
+                    if (red < reduction) red = 0;
+                    else red -= reduction;
+                    if (green < reduction) green = 0;
+                    else green -= reduction;
+                    if (blue < reduction) blue = 0;
+                    else blue -= reduction;
+                    *ptr = (red << 10) | (green << 5) | blue;
+                }
 
                 REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
@@ -423,7 +479,21 @@ bool scroll(ScrollDir dir) {
 
                 DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, tilesLen);
                 DMA3Copy(BG_MAP_VRAM_BASE17, room_doorMap, mapLen);
-                DMA3Copy(BG_PALETTE_POINTER + 32, room_doorPal, palLen);
+                DMA3Copy(BG_PALETTE_POINTER + 32/2, room_doorPal, palLen);
+                for (int i = 1; i < palLen * 2; i++) {
+                    vu16* ptr = (BG_PALETTE_POINTER + 32/2 + i);
+                    u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                    u8 green = ((*ptr) & 0b1111100000) >> 5;
+                    u8 blue = (*ptr) & 0b11111;
+                    u16 reduction = 17;
+                    if (red < reduction) red = 0;
+                    else red -= reduction;
+                    if (green < reduction) green = 0;
+                    else green -= reduction;
+                    if (blue < reduction) blue = 0;
+                    else blue -= reduction;
+                    *ptr = (red << 10) | (green << 5) | blue;
+                }
 
                 REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
@@ -505,7 +575,7 @@ bool scroll(ScrollDir dir) {
     {
         DMA3Copy(BG_TILE_VRAM_BASE0, BG_TILE_VRAM_BASE1, tilesLen);
         DMA3Copy(BG_MAP_VRAM_BASE10, BG_MAP_VRAM_BASE17, mapLen);
-        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32, palLen);
+        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 32/2, palLen);
 
         REG_BG0HOFS = 0;
         REG_BG0VOFS = 0;
@@ -521,7 +591,7 @@ bool scroll(ScrollDir dir) {
 
 void generateRooms() {
     {
-        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2 };
+        Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2, {{70, 70}, {20, 80}, {160, 60}, {80, 90}}, 4 };
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X] = r;
     }
 
@@ -571,7 +641,30 @@ reset_game:
     { //Room
         DMA3Copy(BG_TILE_VRAM_BASE0, roomTiles, roomTilesLen/4);
         DMA3Copy(BG_MAP_VRAM_BASE10, roomMap, roomMapLen/4);
-        DMA3Copy(BG_PALETTE_POINTER, roomPal, roomPalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 96/2, roomPal, roomPalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 128/2, roomPal, roomPalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 160/2, roomPal, roomPalLen/4);
+        for (int j = 96; j <= 160; j+=32) {
+            for (int i = 1; i < roomPalLen/2; i++) {
+                vu16* ptr = (BG_PALETTE_POINTER + j/2 + i);
+                u8 red = ((*ptr) & 0b0111110000000000) >> 10;
+                u8 green = ((*ptr) & 0b1111100000) >> 5;
+                u8 blue = (*ptr) & 0b11111;
+                u16 reduction;
+                if (j == 96) reduction = 4;
+                if (j == 128) reduction = 9;
+                if (j == 160) reduction = 17;
+                if (red < reduction) red = 0;
+                else red -= reduction;
+                if (green < reduction) green = 0;
+                else green -= reduction;
+                if (blue < reduction) blue = 0;
+                else blue -= reduction;
+                *ptr = (red << 10) | (green << 5) | blue;
+            }
+        }
+        DMA3Copy(BG_PALETTE_POINTER, BG_PALETTE_POINTER + 160/2, roomPalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 160/2, roomPal, roomPalLen/4);
 
         REG_BG0CNT = BIT00 | BIT01 | BIT09 | BIT11 | BIT14 | BIT15;
     }
@@ -581,7 +674,7 @@ reset_game:
     }
     { //HUD
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
-        DMA3Copy(BG_PALETTE_POINTER + 64, hudPal, hudPalLen/4);
+        DMA3Copy(BG_PALETTE_POINTER + 64/2, hudPal, hudPalLen/4);
 
         REG_BG2CNT = BIT03 | BIT11 | BIT12;
     }
