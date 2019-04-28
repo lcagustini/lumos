@@ -19,7 +19,7 @@
 
 #define PLAYER_SPEED (0b1011 << 5)
 #define MONSTER_SPEED INTTOFP(1)
-#define BULLET_SPEED INTTOFP(1)
+#define BULLET_SPEED INTTOFP(3)
 
 #define DIAGONAL_BULLET_SPEED (u16)((FPTOINT(BULLET_SPEED)*1.41/2.0)*256)
 
@@ -54,8 +54,12 @@ typedef enum {
 struct {
     u16 x;
     u16 y;
+
+    u16 bullet_timer;
+    u16 mana_timer;
+
+    u8 mana;
     // TODO: health
-    // TODO: lightfulness ?
     PlayerDir dir;
 } player = {0};
 
@@ -387,6 +391,7 @@ int main() {
 
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
+    player.mana = 100;
 
     { //Ball
         DMA3Copy(OBJ_TILE_VRAM + 32*1, ballTiles, ballTilesLen/4);
@@ -435,7 +440,10 @@ int main() {
                 dir |= BULLET_RIGHT;
             }
             if (~REG_KEYPAD & BUTTON_A) {
-                if (playerBulletsLen < 10) {
+                if (playerBulletsLen < 10 && !player.bullet_timer && player.mana >= 5) {
+                    player.bullet_timer = 20;
+                    player.mana -= 5;
+
                     playerBullets[playerBulletsLen].x = player.x;
                     playerBullets[playerBulletsLen].y = player.y;
                     if (dir) {
@@ -465,6 +473,13 @@ int main() {
 
         updateMonsters();
         updateBullets();
+
+        if (player.bullet_timer) player.bullet_timer--;
+        if (player.mana_timer) player.mana_timer--;
+        else {
+            player.mana_timer = 20;
+            player.mana++;
+        }
 
         // VBLANK BARRIER
         while(!(REG_DISPSTAT & BIT00)); //Wait VBlank migue
