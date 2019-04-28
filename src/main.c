@@ -5,8 +5,19 @@
 #include "gfx/enemy.h"
 #include "gfx/enemy_2.h"
 #include "gfx/lumos.h"
+#include "gfx/lumos_vert.h"
+#include "gfx/lumos_1_45.h"
 #include "gfx/patrono_1.h"
+#include "gfx/patrono_1_vert.h"
+#include "gfx/cachorro_1_hor.h"
+#include "gfx/cachorro_1_vert.h"
+#include "gfx/lontra_1_hor.h"
+#include "gfx/lontra_1_vert.h"
 #include "gfx/hud.h"
+#include "gfx/aragog_32_1.h"
+#include "gfx/aragog_32_1ho.h"
+#include "gfx/big_spider.h"
+#include "gfx/big_spider_hor.h"
 
 #include "gfx/doors_red.h"
 #include "gfx/doors_green.h"
@@ -55,8 +66,9 @@
 #define ABS(a) ((a)<0 ? (-a) : (a))
 
 #define PLAYER_SPEED (0b1011 << 5)
-#define MONSTER_SPEED (0b111 << 4)
-#define BULLET_SPEED INTTOFP(3)
+//#define MONSTER_SPEED (0b111 << 4)
+#define MONSTER_SPEED (0b11 << 6)
+#define BULLET_SPEED (0b101 << 7)
 
 #define DIAGONAL_BULLET_SPEED (u16)((FPTOINT(BULLET_SPEED)*1.41/2.0)*256)
 
@@ -109,11 +121,18 @@ struct {
     PlayerDir dir;
 } player;
 
+typedef enum {
+    INVALID_MONSTER = 0,
+    DEMENTOR,
+    ARAGOG,
+    BIG_SPIDER
+} MonsterType;
+
 typedef struct {
     u16 x;
     u16 y;
     s8 health;
-    // TODO: monster type
+    MonsterType type;
 } Monster;
 Monster monsters[50];
 u8 monstersLen;
@@ -131,7 +150,6 @@ typedef enum {
 typedef struct {
     u8 x;
     u8 y;
-    // TODO: monster type
 } SpawnLoc;
 
 typedef struct {
@@ -146,6 +164,7 @@ typedef struct {
     u8 monsterSpawnsLen;
     Light lightSources[4];
     u8 lightSourcesLen;
+    MonsterType monsterType;
     // TODO: itens
 } Room;
 Room rooms[10][10];
@@ -155,6 +174,8 @@ Room rooms[10][10];
 
 u8 currentRoomX = STARTING_ROOM_X;
 u8 currentRoomY = STARTING_ROOM_Y;
+
+s32 character_swap_timer;
 
 struct {
     u16 x;
@@ -259,12 +280,12 @@ bool collidesWithOtherMonsters(u8 index) {
     return false;
 }
 
-bool collidesWithPlayer(u8 index) {
+bool collidesWithPlayer(u8 index, u8 xoff, u8 yoff, u8 w, u8 h) {
     Monster m = monsters[index];
-    if(m.x + INTTOFP(4) < player.x + INTTOFP(8 + 4) &&
-            m.x + INTTOFP(8 + 4) > player.x + INTTOFP(4) &&
-            m.y + INTTOFP(4) < player.y + INTTOFP(8 + 4) &&
-            m.y + INTTOFP(8 + 4) > player.y + INTTOFP(4))
+    if(m.x + INTTOFP(xoff) < player.x + INTTOFP(8 + 4) &&
+            m.x + INTTOFP(w + xoff) > player.x + INTTOFP(4) &&
+            m.y + INTTOFP(yoff) < player.y + INTTOFP(8 + 4) &&
+            m.y + INTTOFP(h + yoff) > player.y + INTTOFP(4))
     {
         return true;
     }
@@ -284,47 +305,88 @@ void updateMonsters() {
             rooms[cy][cx].monsterSpawns[i] = rooms[cy][cx].monsterSpawns[--rooms[cy][cx].monsterSpawnsLen];
         }
 
+        u8 mxoff, myoff, mw, mh, mdmg;
+        switch (monsters[i].type) {
+            case DEMENTOR:
+                mxoff = 4;
+                myoff = 4;
+                mw = 16 - 4*2;
+                mh = 16 - 4*2;
+                mdmg = 1;
+                break;
+            case ARAGOG:
+                mxoff = 6;
+                myoff = 6;
+                mw = 32 - 6 * 2;
+                mh = 32 - 6 * 2;
+                mdmg = 2;
+                break;
+            case BIG_SPIDER:
+                mxoff = 7;
+                myoff = 7;
+                mw = 64 - 7 * 2;
+                mh = 64 - 7 * 2;
+                mdmg = 4;
+                break;
+            default:
+                assert(false);
+        }
+
         s32 dx = (s32)player.x - (s32)monsters[i].x;
         s32 dy = (s32)player.y - (s32)monsters[i].y;
 
         if (ABS(dx) > ABS(dy)) {
             if (dx < 0) {
                 monsters[i].x -= MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] &= ~BIT12;
+                    OAM_ATTRIBS[6 + i*4] = 85 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].x += MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].x += MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
             else {
                 monsters[i].x += MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] |= BIT12;
+                    OAM_ATTRIBS[6 + i*4] = 85 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].x -= MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].x -= MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
         }
         else {
             if (dy < 0) {
                 monsters[i].y -= MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] |= BIT13;
+                    OAM_ATTRIBS[6 + i*4] = 69 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].y += MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].y += MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
             else {
                 monsters[i].y += MONSTER_SPEED;
+                if (monsters[i].type == ARAGOG) {
+                    OAM_ATTRIBS[5 + i*4] &= ~BIT13;
+                    OAM_ATTRIBS[6 + i*4] = 69 | BIT10 | BIT12;
+                }
                 if (collidesWithOtherMonsters(i)) monsters[i].y -= MONSTER_SPEED;
-                if (collidesWithPlayer(i)) {
+                if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].y -= MONSTER_SPEED;
-                    player.health--;
+                    player.health -= mdmg;
                 }
             }
         }
-
-        // collision with player
     }
 }
 
@@ -464,15 +526,34 @@ void changeRoom(Room r) {
     // change monsters
     monstersLen = r.monsterSpawnsLen;
     for (u8 i = 0; i < monstersLen; i++) {
-        Monster m = {.x = INTTOFP(r.monsterSpawns[i].x), .y = INTTOFP(r.monsterSpawns[i].y), .health = 10}; // TODO: remove hardcoded health
+        Monster m = {.x = INTTOFP(r.monsterSpawns[i].x), .y = INTTOFP(r.monsterSpawns[i].y), .type = r.monsterType}; // TODO: remove hardcoded health
+
+        switch (r.monsterType) {
+            case INVALID_MONSTER:
+                assert(false);
+            case DEMENTOR:
+                m.health = 10;
+                DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+                OAM_ATTRIBS[5 + i*4] = BIT14;
+                OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT11 | BIT12;
+                break;
+            case ARAGOG:
+                m.health = 20;
+                DMA3Copy(OBJ_TILE_VRAM + 32*69, aragog_32_1Tiles, aragog_32_1TilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1Pal, aragog_32_1PalLen/4);
+                OAM_ATTRIBS[5 + i*4] = BIT15;
+                OAM_ATTRIBS[6 + i*4] = 69 | BIT11 | BIT12;
+                break;
+            case BIG_SPIDER:
+                m.health = 30;
+                // TODO
+                break;
+            default:
+                assert(false);
+        }
+
         monsters[i] = m;
-
-        // TODO: switch on monster type
-        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
-        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
-
-        OAM_ATTRIBS[5 + i*4] = BIT14;
-        OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT11 | BIT12;
     }
 
     // TODO: change itens
@@ -991,6 +1072,7 @@ reset_game:
         currentRoomY = STARTING_ROOM_Y;
 
         frame = 0;
+        character_swap_timer = 0;
 
         memset((void*)OAM_ATTRIBS, 0, 128 * 4);
 
@@ -1072,21 +1154,41 @@ reset_game:
 
         REG_BG0CNT = BIT00 | BIT01 | BIT09 | BIT11 | BIT14 | BIT15;
     }
-    { // Bullet
+    { // Bullet H
         DMA3Copy(OBJ_TILE_VRAM + 32*9, lumosTiles, lumosTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 64, lumosPal, lumosPalLen/4);
     }
-    { //Candle
+    { // Bullet V
+        DMA3Copy(OBJ_TILE_VRAM + 32*45, lumos_vertTiles, lumos_vertTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 64, lumos_vertPal, lumos_vertPalLen/4);
+    }
+    { // Bullet D
+        DMA3Copy(OBJ_TILE_VRAM + 32*49, lumos_1_45Tiles, lumos_1_45TilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 64, lumos_1_45Pal, lumos_1_45PalLen/4);
+    }
+    { // Candle
         DMA3Copy(OBJ_TILE_VRAM + 32*13, vela_apagada_1Tiles, vela_apagada_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 96, vela_apagada_1Pal, vela_apagada_1PalLen/4);
     }
-    { //Candle
+    { // Candle
         DMA3Copy(OBJ_TILE_VRAM + 32*21, vela_acesa_1Tiles, vela_acesa_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 128, vela_acesa_1Pal, vela_acesa_1PalLen/4);
     }
-    { // Patrono
+    { // Patrono H
         DMA3Copy(OBJ_TILE_VRAM + 32*29, patrono_1Tiles, patrono_1TilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1Pal, patrono_1PalLen/4);
+    }
+    { // Patrono V
+        DMA3Copy(OBJ_TILE_VRAM + 32*53, patrono_1_vertTiles, patrono_1_vertTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1_vertPal, patrono_1_vertPalLen/4);
+    }
+    { // Aragog V
+        DMA3Copy(OBJ_TILE_VRAM + 32*69, aragog_32_1Tiles, aragog_32_1TilesLen/4);
+        //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1Pal, aragog_32_1PalLen/4);
+    }
+    { // Aragog H
+        DMA3Copy(OBJ_TILE_VRAM + 32*85, aragog_32_1hoTiles, aragog_32_1hoTilesLen/4);
+        //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1hoPal, aragog_32_1hoPalLen/4);
     }
     { // HUD
         DMA3Copy(BG_TILE_VRAM_BASE2, hudTiles, hudTilesLen/4);
@@ -1125,7 +1227,8 @@ reset_game:
                 player.dir = DIR_RIGHT;
                 dir |= BULLET_RIGHT;
             }
-            if (~REG_KEYPAD & BUTTON_SELECT) {
+            if ((~REG_KEYPAD & BUTTON_SELECT) && character_swap_timer <= 0) {
+                character_swap_timer = 20;
                 if (character == LARRY) {
                     character = LORRAINE;
                 }
@@ -1134,6 +1237,21 @@ reset_game:
                 }
                 else if (character == RONALDO) {
                     character = LARRY;
+                }
+
+                switch (character) {
+                    case LARRY:
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frente_1Tiles, larry_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, larry_frente_1Pal, larry_frente_1PalLen/4);
+                        break;
+                    case LORRAINE:
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, lorraine_frente_1Tiles, lorraine_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, lorraine_frente_1Pal, lorraine_frente_1PalLen/4);
+                        break;
+                    case RONALDO:
+                        DMA3Copy(OBJ_TILE_VRAM + 32*1, ronaldo_frente_1Tiles, ronaldo_frente_1TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER, ronaldo_frente_1Pal, ronaldo_frente_1PalLen/4);
+                        break;
                 }
             }
 #define LIGHT_PICKUP_RANGE 20
@@ -1165,9 +1283,28 @@ reset_game:
             if (~REG_KEYPAD & (BUTTON_A|BUTTON_B)) {
                 if (playerBulletsLen < 10 && !player.bullet_timer && ((player.mana >= 5 && (~REG_KEYPAD & BUTTON_A)) || (player.mana > 50 && (~REG_KEYPAD & BUTTON_B)))) {
                     player.bullet_timer = 20;
-                    if (~REG_KEYPAD & BUTTON_B) player.mana -= 50;
+                    if (~REG_KEYPAD & BUTTON_B) {
+                        player.mana -= 50;
+                        switch (character) {
+                            case RONALDO:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*29, cachorro_1_horTiles, cachorro_1_horTilesLen/4);
+                                DMA3Copy(OBJ_TILE_VRAM + 32*53, cachorro_1_vertTiles, cachorro_1_vertTilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER + 160, cachorro_1_horPal, cachorro_1_horPalLen/4);
+                                break;
+                            case LORRAINE:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*29, lontra_1_horTiles, lontra_1_horTilesLen/4);
+                                DMA3Copy(OBJ_TILE_VRAM + 32*53, lontra_1_vertTiles, lontra_1_vertTilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER + 160, lontra_1_horPal, lontra_1_horPalLen/4);
+                                break;
+                            case LARRY:
+                                DMA3Copy(OBJ_TILE_VRAM + 32*29, patrono_1Tiles, patrono_1TilesLen/4);
+                                DMA3Copy(OBJ_TILE_VRAM + 32*53, patrono_1_vertTiles, patrono_1_vertTilesLen/4);
+                                DMA3Copy(OBJ_PALETTE_POINTER + 160, patrono_1Pal, patrono_1PalLen/4);
+                                break;
+                        }
+                    }
                     else player.mana -= 5;
-
+                    
                     playerBullets[playerBulletsLen].x = player.x;
                     playerBullets[playerBulletsLen].y = player.y;
                     if (dir) {
@@ -1237,17 +1374,21 @@ reset_game:
                 }
             }
         }
-        if (!((frame + 10) & 0b1111)) {
-            if ((frame + 10) & 0b10000) {
-                {
-                    DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
-                    DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+
+        // monster animation (TODO: other monster animations)
+        if (rooms[currentRoomY][currentRoomX].monsterType == DEMENTOR) {
+            if (!((frame + 10) & 0b1111)) {
+                if ((frame + 10) & 0b10000) {
+                    {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+                    }
                 }
-            }
-            else {
-                {
-                    DMA3Copy(OBJ_TILE_VRAM + 32*5, enemy_2Tiles, enemy_2TilesLen/4);
-                    DMA3Copy(OBJ_PALETTE_POINTER + 32, enemy_2Pal, enemy_2PalLen/4);
+                else {
+                    {
+                        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemy_2Tiles, enemy_2TilesLen/4);
+                        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemy_2Pal, enemy_2PalLen/4);
+                    }
                 }
             }
         }
@@ -1428,17 +1569,62 @@ reset_game:
         for (int i = 0; i < playerBulletsLen; i++) {
             if (playerBullets[i].patrono) {
                 OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
-                OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
-                OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+                if (playerBullets[i].dir & BULLET_LEFT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15 | BIT12;
+                    OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+                }
+                else if (playerBullets[i].dir & BULLET_RIGHT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
+                    OAM_ATTRIBS[322 + i*4] = 29 | BIT10 | BIT12 | BIT14;
+                }
+                else if (playerBullets[i].dir & BULLET_UP) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 53 | BIT10 | BIT12 | BIT14;
+                }
+                else if (playerBullets[i].dir & BULLET_DOWN) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT15;
+                    OAM_ATTRIBS[322 + i*4] = 53 | BIT10 | BIT12 | BIT14;
+                }
             } else {
                 OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
-                OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
-                OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+                if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_LEFT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT12 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if ((playerBullets[i].dir & BULLET_UP) && (playerBullets[i].dir & BULLET_RIGHT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if ((playerBullets[i].dir & BULLET_DOWN) && (playerBullets[i].dir & BULLET_LEFT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT12;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if ((playerBullets[i].dir & BULLET_DOWN) && (playerBullets[i].dir & BULLET_RIGHT)) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                    OAM_ATTRIBS[322 + i*4] = 49 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_DOWN) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                    OAM_ATTRIBS[322 + i*4] = 45 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_UP) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT13;
+                    OAM_ATTRIBS[322 + i*4] = 45 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_LEFT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14 | BIT12;
+                    OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+                }
+                else if (playerBullets[i].dir & BULLET_RIGHT) {
+                    OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
+                    OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT10 | BIT13;
+                }
             }
         }
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
         frame++;
+        if (character_swap_timer > 0) character_swap_timer--;
     }
 
     return 0;

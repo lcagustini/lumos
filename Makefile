@@ -32,7 +32,17 @@ gfx: force
 	grit gfx/lorraine_tras_2.png -o src/gfx/lorraine_tras_2
 	grit gfx/lumos.png -o src/gfx/lumos
 	grit gfx/lumos_1.png -o src/gfx/lumos_1
+	grit gfx/lumos_1_45.png -o src/gfx/lumos_1_45
+	grit gfx/lumos_2_45.png -o src/gfx/lumos_2_45
+	grit gfx/lumos_vert.png -o src/gfx/lumos_vert
+	grit gfx/lumos_1_vert.png -o src/gfx/lumos_1_vert
 	grit gfx/patrono_1.png -o src/gfx/patrono_1
+	grit gfx/patrono_1_vert.png -o src/gfx/patrono_1_vert
+	grit gfx/patrono_2_vert.png -o src/gfx/patrono_2_vert
+	grit gfx/cachorro_1_hor.png -o src/gfx/cachorro_1_hor
+	grit gfx/cachorro_1_vert.png -o src/gfx/cachorro_1_vert
+	grit gfx/lontra_1_hor.png -o src/gfx/lontra_1_hor
+	grit gfx/lontra_1_vert.png -o src/gfx/lontra_1_vert
 	grit gfx/hud.png -o src/gfx/hud
 	grit gfx/vela_acesa_1.png -o src/gfx/vela_acesa_1
 	grit gfx/vela_acesa_2.png -o src/gfx/vela_acesa_2
@@ -46,6 +56,12 @@ gfx: force
 	grit gfx/doors_brown.png -o src/gfx/doors_brown
 	grit gfx/doors_red.png -o src/gfx/doors_red
 	grit gfx/doors_green.png -o src/gfx/doors_green
+	grit gfx/big_spider.png -o src/gfx/big_spider
+	grit gfx/big_spider_hor.png -o src/gfx/big_spider_hor
+	grit gfx/aragog_32_1.png -o src/gfx/aragog_32_1
+	grit gfx/aragog_32_1ho.png -o src/gfx/aragog_32_1ho
+	grit gfx/aragog_32_2.png -o src/gfx/aragog_32_2
+	grit gfx/aragog_32_2ho.png -o src/gfx/aragog_32_2ho
 
 clean:
 	rm -rf bin main.gba main.sav
