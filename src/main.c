@@ -3,13 +3,17 @@
 #include "gfx/room.h"
 #include "gfx/room_door.h"
 #include "gfx/enemy.h"
+#include "gfx/bullet.h"
 
 #include <stdbool.h>
 
 #define INTTOFP(a) (a<<8)
 #define FPTOINT(a) (a>>8)
 
+#define ABS(a) ((a)<0 ? (-a) : (a))
+
 #define PLAYER_SPEED (0b1011 << 5)
+#define MONSTER_SPEED INTTOFP(1)
 
 struct {
     u16 x;
@@ -39,6 +43,25 @@ void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
 
 void updateMonsters() {
     for (int i = 0; i < monstersLen; i++) {
+        s32 dx = (s32)player.x - (s32)monsters[i].x;
+        s32 dy = (s32)player.y - (s32)monsters[i].y;
+
+        if (ABS(dx) > ABS(dy)) {
+            if (dx < 0) {
+                monsters[i].x -= MONSTER_SPEED;
+            }
+            else {
+                monsters[i].x += MONSTER_SPEED;
+            }
+        }
+        else {
+            if (dy < 0) {
+                monsters[i].y -= MONSTER_SPEED;
+            }
+            else {
+                monsters[i].y += MONSTER_SPEED;
+            }
+        }
     }
 }
 
@@ -201,6 +224,11 @@ int main() {
         //TODO: Truncate player x and y
         OAM_ATTRIBS[0] = (OAM_ATTRIBS[0] & 0b1111111100000000) | FPTOINT(player.y);
         OAM_ATTRIBS[1] = (OAM_ATTRIBS[1] & 0b1111111000000000) | FPTOINT(player.x);
+
+        for (int i = 0; i < monstersLen; i++) {
+            OAM_ATTRIBS[4 + i*4] = (OAM_ATTRIBS[4 + i*4] & 0b1111111100000000) | FPTOINT(monsters[i].y);
+            OAM_ATTRIBS[5 + i*4] = (OAM_ATTRIBS[5 + i*4] & 0b1111111000000000) | FPTOINT(monsters[i].x);
+        }
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
     }

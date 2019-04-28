@@ -1,9 +1,9 @@
 
-//{{BLOCK(ball)
+//{{BLOCK(bullet)
 
 //======================================================================
 //
-//	ball, 16x16@4, 
+//	bullet, 16x16@4, 
 //	Transparent color : FF,00,FF
 //	+ palette 16 entries, not compressed
 //	+ 4 tiles not compressed
@@ -15,15 +15,15 @@
 //
 //======================================================================
 
-#ifndef GRIT_BALL_H
-#define GRIT_BALL_H
+#ifndef GRIT_BULLET_H
+#define GRIT_BULLET_H
 
-#define ballTilesLen 128
-extern const unsigned int ballTiles[32];
+#define bulletTilesLen 128
+extern const unsigned int bulletTiles[32];
 
-#define ballPalLen 32
-extern const unsigned short ballPal[16];
+#define bulletPalLen 32
+extern const unsigned short bulletPal[16];
 
-#endif // GRIT_BALL_H
+#endif // GRIT_BULLET_H
 
-//}}BLOCK(ball)
+//}}BLOCK(bullet)
