@@ -3,14 +3,14 @@
 
 //======================================================================
 //
-//	room, 256x256@8, 
+//	room, 512x512@4, 
 //	Transparent color : FF,00,FF
-//	+ palette 256 entries, not compressed
-//	+ 5 tiles (t|f reduced) not compressed
-//	+ regular map (flat), not compressed, 32x32 
-//	Total size: 512 + 320 + 2048 = 2880
+//	+ palette 16 entries, not compressed
+//	+ 5 tiles (t|f|p reduced) not compressed
+//	+ regular map (in SBBs), not compressed, 64x64 
+//	Total size: 32 + 160 + 8192 = 8384
 //
-//	Time-stamp: 2019-04-27, 19:48:56
+//	Time-stamp: 2019-04-27, 22:13:11
 //	Exported by Cearn's GBA Image Transmogrifier, v0.8.15
 //	( http://www.coranac.com/projects/#grit )
 //
@@ -19,14 +19,14 @@
 #ifndef GRIT_ROOM_H
 #define GRIT_ROOM_H
 
-#define roomTilesLen 320
-extern const unsigned int roomTiles[80];
+#define roomTilesLen 160
+extern const unsigned int roomTiles[40];
 
-#define roomMapLen 2048
-extern const unsigned short roomMap[1024];
+#define roomMapLen 8192
+extern const unsigned short roomMap[4096];
 
-#define roomPalLen 512
-extern const unsigned short roomPal[256];
+#define roomPalLen 32
+extern const unsigned short roomPal[16];
 
 #endif // GRIT_ROOM_H
 

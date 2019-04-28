@@ -164,13 +164,13 @@ typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It
 #define REG_DISPSTAT   *(vu16*)0x4000004		//???
 #define REG_VCOUNT     *(vu16*)0x4000006		//Vertical Control (Sync)
 #define REG_BG0CNT     *(vu16*)0x4000008		//Background 0
-#define REG_BG1CNT     *(u16*)0x400000A		//Background 1
+#define REG_BG1CNT     *(vu16*)0x400000A		//Background 1
 #define REG_BG2CNT     *(u16*)0x400000C		//Background 2
 #define REG_BG3CNT     *(u16*)0x400000E		//Background 3
-#define REG_BG0HOFS    *(u16*)0x4000010		//Background 0 Horizontal Offset
-#define REG_BG0VOFS    *(u16*)0x4000012		//Background 0 Vertical Offset
-#define REG_BG1HOFS    *(u16*)0x4000014		//Background 1 Horizontal Offset
-#define REG_BG1VOFS    *(u16*)0x4000016		//Background 1 Vertical Offset
+#define REG_BG0HOFS    *(vu16*)0x4000010		//Background 0 Horizontal Offset
+#define REG_BG0VOFS    *(vu16*)0x4000012		//Background 0 Vertical Offset
+#define REG_BG1HOFS    *(vu16*)0x4000014		//Background 1 Horizontal Offset
+#define REG_BG1VOFS    *(vu16*)0x4000016		//Background 1 Vertical Offset
 #define REG_BG2HOFS    *(u16*)0x4000018		//Background 2 Horizontal Offset
 #define REG_BG2VOFS    *(u16*)0x400001A		//Background 2 Vertical Offset
 #define REG_BG3HOFS    *(u16*)0x400001C		//Background 3 Horizontal Offset
