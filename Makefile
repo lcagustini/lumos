@@ -14,6 +14,8 @@ gfx: force
 	grit gfx/larry_frente.png -o src/gfx/larry_frente
 	grit gfx/larry_lado.png -o src/gfx/larry_lado
 	grit gfx/larry_tras.png -o src/gfx/larry_tras
+	grit gfx/lumos.png -o src/gfx/lumos
+	grit gfx/lumos_1.png -o src/gfx/lumos_1
 
 clean:
 	rm -rf bin main.gba main.sav

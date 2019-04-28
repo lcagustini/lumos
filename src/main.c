@@ -3,7 +3,8 @@
 #include "gfx/room.h"
 #include "gfx/room_door.h"
 #include "gfx/enemy.h"
-#include "gfx/bullet.h"
+#include "gfx/lumos.h"
+
 #include "gfx/larry_frente.h"
 #include "gfx/larry_lado.h"
 #include "gfx/larry_tras.h"
@@ -18,6 +19,7 @@
 
 #define PLAYER_SPEED (0b1011 << 5)
 #define MONSTER_SPEED INTTOFP(1)
+#define BULLET_SPEED INTTOFP(1)
 
 /* OAMATTRIBS: (cada 4 -> uma sprite)
  *  0    -> player
@@ -109,12 +111,26 @@ void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
 void updateBullets() {
     for (int i = 0; i < playerBulletsLen; i++) {
         if (playerBullets[i].dir & BULLET_UP) {
+            playerBullets[i].y -= BULLET_SPEED;
         }
         if (playerBullets[i].dir & BULLET_LEFT) {
+            playerBullets[i].x -= BULLET_SPEED;
         }
         if (playerBullets[i].dir & BULLET_DOWN) {
+            playerBullets[i].y += BULLET_SPEED;
         }
         if (playerBullets[i].dir & BULLET_RIGHT) {
+            playerBullets[i].x += BULLET_SPEED;
+        }
+
+        if (FPTOINT(playerBullets[i].x) <= FPTOINT(BULLET_SPEED)
+            || FPTOINT(playerBullets[i].x) >= (240-16-FPTOINT(BULLET_SPEED))
+            || FPTOINT(playerBullets[i].y) <= FPTOINT(BULLET_SPEED)
+            || FPTOINT(playerBullets[i].y) >= (160-16-FPTOINT(BULLET_SPEED))) {
+            playerBullets[i--] = playerBullets[--playerBulletsLen];
+            OAM_ATTRIBS[320 + playerBulletsLen*4] = 0;
+            OAM_ATTRIBS[321 + playerBulletsLen*4] = 0;
+            OAM_ATTRIBS[322 + playerBulletsLen*4] = 0;
         }
     }
 }
@@ -200,7 +216,7 @@ bool scroll(ScrollDir dir) {
                 tilesLen = roomTilesLen/4;
                 mapLen = roomMapLen/4;
                 palLen = roomPalLen/4;
-                
+
                 DMA3Copy(BG_TILE_VRAM_BASE1, roomTiles, tilesLen);
                 DMA3Copy(BG_MAP_VRAM_BASE16, roomMap, mapLen);
                 DMA3Copy(BG_PALETTE_POINTER + 32, roomPal, palLen);
@@ -213,7 +229,7 @@ bool scroll(ScrollDir dir) {
                 tilesLen = room_doorTilesLen/4;
                 mapLen = room_doorMapLen/4;
                 palLen = room_doorPalLen/4;
-                
+
                 DMA3Copy(BG_TILE_VRAM_BASE1, room_doorTiles, tilesLen);
                 DMA3Copy(BG_MAP_VRAM_BASE16, room_doorMap, mapLen);
                 DMA3Copy(BG_PALETTE_POINTER + 32, room_doorPal, palLen);
@@ -355,8 +371,8 @@ int main() {
         REG_BG0CNT = BIT09 | BIT11 | BIT14 | BIT15;
     }
     { //Bullet
-        DMA3Copy(OBJ_TILE_VRAM + 32*9, bulletTiles, bulletTilesLen/4);
-        DMA3Copy(OBJ_PALETTE_POINTER + 64, bulletPal, bulletPalLen/4);
+        DMA3Copy(OBJ_TILE_VRAM + 32*9, lumosTiles, lumosTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 64, lumosPal, lumosPalLen/4);
     }
 
     generateRooms();
@@ -387,11 +403,31 @@ int main() {
                 dir |= BULLET_RIGHT;
             }
             if (~REG_KEYPAD & BUTTON_A) {
-                playerBullets[playerBulletsLen].x = player.x;
-                playerBullets[playerBulletsLen].y = player.y;
-                playerBullets[playerBulletsLen].dir = dir;
+                if (playerBulletsLen < 10) {
+                    playerBullets[playerBulletsLen].x = player.x;
+                    playerBullets[playerBulletsLen].y = player.y;
+                    if (dir) {
+                        playerBullets[playerBulletsLen].dir = dir;
+                    }
+                    else {
+                        switch (player.dir) {
+                            case DIR_UP:
+                                playerBullets[playerBulletsLen].dir = BULLET_UP;
+                                break;
+                            case DIR_LEFT:
+                                playerBullets[playerBulletsLen].dir = BULLET_LEFT;
+                                break;
+                            case DIR_DOWN:
+                                playerBullets[playerBulletsLen].dir = BULLET_DOWN;
+                                break;
+                            case DIR_RIGHT:
+                                playerBullets[playerBulletsLen].dir = BULLET_RIGHT;
+                                break;
+                        }
+                    }
 
-                playerBulletsLen++;
+                    playerBulletsLen++;
+                }
             }
         }
 
@@ -447,7 +483,7 @@ int main() {
 
         for (int i = 0; i < playerBulletsLen; i++) {
             OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
-            OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x);
+            OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x) | BIT14;
             OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT13;
         }
 
