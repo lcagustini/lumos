@@ -67,7 +67,7 @@
 
 #define PLAYER_SPEED (0b1011 << 5)
 //#define MONSTER_SPEED (0b111 << 4)
-#define MONSTER_SPEED (0b11 << 6)
+#define MONSTER_SPEED (0b1011 << 4)
 #define BULLET_SPEED (0b101 << 7)
 
 #define DIAGONAL_BULLET_SPEED (u16)((FPTOINT(BULLET_SPEED)*1.41/2.0)*256)
@@ -122,7 +122,7 @@ struct {
 } player;
 
 typedef enum {
-    INVALID_MONSTER = 0,
+    //INVALID_MONSTER = 0,
     DEMENTOR,
     ARAGOG,
     BIG_SPIDER
@@ -263,15 +263,15 @@ void updateBullets() {
     }
 }
 
-bool collidesWithOtherMonsters(u8 index) {
+bool collidesWithOtherMonsters(u8 index, u8 xoff, u8 yoff, u8 w, u8 h) {
     Monster a = monsters[index];
     for (u8 i = 0; i < monstersLen; i++) {
         if (i == index) continue;
         Monster b = monsters[i];
-        if(a.x + INTTOFP(2) < b.x + INTTOFP(12 + 2) &&
-                a.x + INTTOFP(12 + 2) > b.x + INTTOFP(2) &&
-                a.y + INTTOFP(2) < b.y + INTTOFP(12 + 2) &&
-                a.y + INTTOFP(12 + 2) > b.y + INTTOFP(2))
+        if(a.x + INTTOFP(xoff) < b.x + INTTOFP(w + xoff) &&
+                a.x + INTTOFP(w + xoff) > b.x + INTTOFP(xoff) &&
+                a.y + INTTOFP(yoff) < b.y + INTTOFP(h + yoff) &&
+                a.y + INTTOFP(h + yoff) > b.y + INTTOFP(yoff))
         {
             return true;
         }
@@ -305,7 +305,8 @@ void updateMonsters() {
             rooms[cy][cx].monsterSpawns[i] = rooms[cy][cx].monsterSpawns[--rooms[cy][cx].monsterSpawnsLen];
         }
 
-        u8 mxoff, myoff, mw, mh, mdmg;
+        u8 mxoff, myoff, mw, mh, mdmg, vertTile = 0, horTile = 0;
+        u8 smxoff, smyoff, smw, smh;
         switch (monsters[i].type) {
             case DEMENTOR:
                 mxoff = 4;
@@ -313,6 +314,10 @@ void updateMonsters() {
                 mw = 16 - 4*2;
                 mh = 16 - 4*2;
                 mdmg = 1;
+                smxoff = 2;
+                smyoff = 2;
+                smw = 16 - 2*2;
+                smh = 16 - 2*2;
                 break;
             case ARAGOG:
                 mxoff = 6;
@@ -320,13 +325,25 @@ void updateMonsters() {
                 mw = 32 - 6 * 2;
                 mh = 32 - 6 * 2;
                 mdmg = 2;
+                vertTile = 69;
+                horTile = 85;
+                smxoff = 3;
+                smyoff = 3;
+                smw = 32 - 3*2;
+                smh = 32 - 3*2;
                 break;
             case BIG_SPIDER:
                 mxoff = 7;
                 myoff = 7;
                 mw = 64 - 7 * 2;
                 mh = 64 - 7 * 2;
-                mdmg = 4;
+                mdmg = 1;
+                vertTile = 101;
+                horTile = 165;
+                smxoff = 7;
+                smyoff = 7;
+                smw = 64 - 7*2;
+                smh = 64 - 7*2;
                 break;
             default:
                 assert(false);
@@ -338,11 +355,11 @@ void updateMonsters() {
         if (ABS(dx) > ABS(dy)) {
             if (dx < 0) {
                 monsters[i].x -= MONSTER_SPEED;
-                if (monsters[i].type == ARAGOG) {
+                if (monsters[i].type != DEMENTOR) {
                     OAM_ATTRIBS[5 + i*4] &= ~BIT12;
-                    OAM_ATTRIBS[6 + i*4] = 85 | BIT10 | BIT12;
+                    OAM_ATTRIBS[6 + i*4] = horTile | BIT11 | BIT12;
                 }
-                if (collidesWithOtherMonsters(i)) monsters[i].x += MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i, smxoff, smyoff, smw, smh)) monsters[i].x += MONSTER_SPEED;
                 if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].x += MONSTER_SPEED;
                     player.health -= mdmg;
@@ -350,11 +367,11 @@ void updateMonsters() {
             }
             else {
                 monsters[i].x += MONSTER_SPEED;
-                if (monsters[i].type == ARAGOG) {
+                if (monsters[i].type != DEMENTOR) {
                     OAM_ATTRIBS[5 + i*4] |= BIT12;
-                    OAM_ATTRIBS[6 + i*4] = 85 | BIT10 | BIT12;
+                    OAM_ATTRIBS[6 + i*4] = horTile | BIT11 | BIT12;
                 }
-                if (collidesWithOtherMonsters(i)) monsters[i].x -= MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i, smxoff, smyoff, smw, smh)) monsters[i].x -= MONSTER_SPEED;
                 if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].x -= MONSTER_SPEED;
                     player.health -= mdmg;
@@ -364,11 +381,11 @@ void updateMonsters() {
         else {
             if (dy < 0) {
                 monsters[i].y -= MONSTER_SPEED;
-                if (monsters[i].type == ARAGOG) {
+                if (monsters[i].type != DEMENTOR) {
                     OAM_ATTRIBS[5 + i*4] |= BIT13;
-                    OAM_ATTRIBS[6 + i*4] = 69 | BIT10 | BIT12;
+                    OAM_ATTRIBS[6 + i*4] = vertTile | BIT11 | BIT12;
                 }
-                if (collidesWithOtherMonsters(i)) monsters[i].y += MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i, smxoff, smyoff, smw, smh)) monsters[i].y += MONSTER_SPEED;
                 if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].y += MONSTER_SPEED;
                     player.health -= mdmg;
@@ -376,11 +393,11 @@ void updateMonsters() {
             }
             else {
                 monsters[i].y += MONSTER_SPEED;
-                if (monsters[i].type == ARAGOG) {
+                if (monsters[i].type != DEMENTOR) {
                     OAM_ATTRIBS[5 + i*4] &= ~BIT13;
-                    OAM_ATTRIBS[6 + i*4] = 69 | BIT10 | BIT12;
+                    OAM_ATTRIBS[6 + i*4] = vertTile | BIT11 | BIT12;
                 }
-                if (collidesWithOtherMonsters(i)) monsters[i].y -= MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i, smxoff, smyoff, smw, smh)) monsters[i].y -= MONSTER_SPEED;
                 if (collidesWithPlayer(i, mxoff, myoff, mw, mh)) {
                     monsters[i].y -= MONSTER_SPEED;
                     player.health -= mdmg;
@@ -529,8 +546,6 @@ void changeRoom(Room r) {
         Monster m = {.x = INTTOFP(r.monsterSpawns[i].x), .y = INTTOFP(r.monsterSpawns[i].y), .type = r.monsterType}; // TODO: remove hardcoded health
 
         switch (r.monsterType) {
-            case INVALID_MONSTER:
-                assert(false);
             case DEMENTOR:
                 m.health = 10;
                 DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
@@ -547,7 +562,10 @@ void changeRoom(Room r) {
                 break;
             case BIG_SPIDER:
                 m.health = 30;
-                // TODO
+                DMA3Copy(OBJ_TILE_VRAM + 32*101, big_spiderTiles, big_spiderTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER + 32, big_spiderPal, big_spiderPalLen/4);
+                OAM_ATTRIBS[5 + i*4] = BIT14 | BIT15;
+                OAM_ATTRIBS[6 + i*4] = 101 | BIT11 | BIT12;
                 break;
             default:
                 assert(false);
@@ -1044,7 +1062,7 @@ void generateRooms() {
     }
 
     {
-        Room r = { BK_3, {{40, 20}, {80, 120}}, 2 };
+        Room r = { BK_3, {{40, 20}, {80, 120}}, 2, .monsterType = BIG_SPIDER};
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X] = r;
     }
 
@@ -1054,7 +1072,7 @@ void generateRooms() {
     }
 
     {
-        Room r = { BK_3, {{100, 120}, {20, 20}, {70, 130}}, 3 };
+        Room r = { BK_3, {{100, 120}, {20, 20}, {70, 130}}, 3, .monsterType = DEMENTOR};
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X+1] = r;
     }
 };
@@ -1188,6 +1206,14 @@ reset_game:
     }
     { // Aragog H
         DMA3Copy(OBJ_TILE_VRAM + 32*85, aragog_32_1hoTiles, aragog_32_1hoTilesLen/4);
+        //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1hoPal, aragog_32_1hoPalLen/4);
+    }
+    { // Big Spider V
+        DMA3Copy(OBJ_TILE_VRAM + 32*101, big_spiderTiles, big_spiderTilesLen/4);
+        //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1Pal, aragog_32_1PalLen/4);
+    }
+    { // Big Spider H
+        DMA3Copy(OBJ_TILE_VRAM + 32*165, big_spider_horTiles, big_spider_horTilesLen/4);
         //DMA3Copy(OBJ_PALETTE_POINTER + 32, aragog_32_1hoPal, aragog_32_1hoPalLen/4);
     }
     { // HUD
