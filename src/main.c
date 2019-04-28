@@ -60,10 +60,10 @@ struct {
     u16 bullet_timer;
     u16 mana_timer;
 
-    u8 mana;
-    // TODO: health
+    s8 mana;
+    s8 health;
     PlayerDir dir;
-} player = {0};
+} player;
 
 typedef struct {
     u16 x;
@@ -71,8 +71,8 @@ typedef struct {
     s8 health;
     // TODO: monster type
 } Monster;
-Monster monsters[50] = {0};
-u8 monstersLen = 0;
+Monster monsters[50];
+u8 monstersLen;
 
 typedef enum {
     INVALID_ROOM = 0,
@@ -94,7 +94,7 @@ typedef struct {
     // TODO: itens
     // TODO: light sources
 } Room;
-Room rooms[10][10] = {0};
+Room rooms[10][10];
 
 #define STARTING_ROOM_X 5
 #define STARTING_ROOM_Y 5
@@ -107,7 +107,7 @@ struct {
     u16 y;
     BulletDir dir;
 } playerBullets[10];
-u8 playerBulletsLen = 0;
+u8 playerBulletsLen;
 
 void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
     REG_DMA3SAD = src;
@@ -166,15 +166,44 @@ void updateBullets() {
         }
 
         for (int j = 0; j < monstersLen; j++) {
-            if(playerBullets[i].x + 1 < monsters[j].x + INTTOFP(16) &&
-                    playerBullets[i].x + 1 + INTTOFP(14) > monsters[j].x &&
-                    playerBullets[i].y + 1 < monsters[j].y + INTTOFP(16) &&
-                    playerBullets[i].y + 1 + INTTOFP(14) > monsters[j].y)
+            if(playerBullets[i].x + INTTOFP(2) < monsters[j].x + INTTOFP(2 + 12) &&
+                    playerBullets[i].x + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].x &&
+                    playerBullets[i].y + INTTOFP(2) < monsters[j].y + INTTOFP(2 + 12) &&
+                    playerBullets[i].y + INTTOFP(2 + 12) > INTTOFP(2) + monsters[j].y)
             {
                 monsters[j].health--;
             }
         }
     }
+}
+
+bool collidesWithOtherMonsters(u8 index) {
+    Monster a = monsters[index];
+    for (u8 i = 0; i < monstersLen; i++) {
+        if (i == index) continue;
+        Monster b = monsters[i];
+        if(a.x + INTTOFP(2) < b.x + INTTOFP(12 + 2) &&
+                a.x + INTTOFP(12 + 2) > b.x + INTTOFP(2) &&
+                a.y + INTTOFP(2) < b.y + INTTOFP(12 + 2) &&
+                a.y + INTTOFP(12 + 2) > b.y + INTTOFP(2))
+        {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool collidesWithPlayer(u8 index) {
+    Monster m = monsters[index];
+    if(m.x + INTTOFP(4) < player.x + INTTOFP(8 + 4) &&
+            m.x + INTTOFP(8 + 4) > player.x + INTTOFP(4) &&
+            m.y + INTTOFP(4) < player.y + INTTOFP(8 + 4) &&
+            m.y + INTTOFP(8 + 4) > player.y + INTTOFP(4))
+    {
+        return true;
+    }
+    return false;
 }
 
 void updateMonsters() {
@@ -196,19 +225,41 @@ void updateMonsters() {
         if (ABS(dx) > ABS(dy)) {
             if (dx < 0) {
                 monsters[i].x -= MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].x += MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].x += MONSTER_SPEED;
+                    player.health--;
+                }
             }
             else {
                 monsters[i].x += MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].x -= MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].x -= MONSTER_SPEED;
+                    player.health--;
+                }
             }
         }
         else {
             if (dy < 0) {
                 monsters[i].y -= MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].y += MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].y += MONSTER_SPEED;
+                    player.health--;
+                }
             }
             else {
                 monsters[i].y += MONSTER_SPEED;
+                if (collidesWithOtherMonsters(i)) monsters[i].y -= MONSTER_SPEED;
+                if (collidesWithPlayer(i)) {
+                    monsters[i].y -= MONSTER_SPEED;
+                    player.health--;
+                }
             }
         }
+
+        // collision with player
     }
 }
 
@@ -452,11 +503,27 @@ void generateRooms() {
 };
 
 int main() {
+reset_game:
+    {
+        memset(&player, 0, sizeof(player));
+        memset(monsters, 0, sizeof(monsters));
+        memset(&monstersLen, 0, sizeof(monstersLen));
+        memset(playerBullets, 0, sizeof(playerBullets));
+        memset(&playerBulletsLen, 0, sizeof(playerBulletsLen));
+        memset(rooms, 0, sizeof(rooms));
+        currentRoomX = STARTING_ROOM_X;
+        currentRoomY = STARTING_ROOM_Y;
+
+        memset((void*)OAM_ATTRIBS, 0, 128 * 4);
+    }
+
+
     REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT12; //Mode 0 + BG0-2 + OBJ + 1D OBJ Mapping
 
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
     player.mana = 100;
+    player.health = 100;
 
     { //Player
         OAM_ATTRIBS[1] = BIT14;
@@ -542,9 +609,14 @@ int main() {
         updateMonsters();
         updateBullets();
 
+        // player death
+        if (player.health <= 0) {
+            goto reset_game;
+        }
+
         if (player.bullet_timer) player.bullet_timer--;
         if (player.mana_timer) player.mana_timer--;
-        else if (monstersLen) {
+        else if (monstersLen && player.mana < 100) {
             player.mana_timer = 20;
             player.mana++;
         }
