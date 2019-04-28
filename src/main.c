@@ -4,6 +4,9 @@
 #include "gfx/room_door.h"
 #include "gfx/enemy.h"
 #include "gfx/bullet.h"
+#include "gfx/larry_frente.h"
+#include "gfx/larry_lado.h"
+#include "gfx/larry_tras.h"
 
 #include <stdbool.h>
 #include <assert.h>
@@ -16,11 +19,40 @@
 #define PLAYER_SPEED (0b1011 << 5)
 #define MONSTER_SPEED INTTOFP(1)
 
+/* OAMATTRIBS: (cada 4 -> uma sprite)
+ *  0    -> player
+ *  4+   -> enemy
+ *  320+ -> player bullet
+ */
+
+typedef enum {
+    DIR_UP,
+    DIR_LEFT,
+    DIR_DOWN,
+    DIR_RIGHT,
+} PlayerDir;
+
+typedef enum {
+    SCROLL_UP,
+    SCROLL_LEFT,
+    SCROLL_DOWN,
+    SCROLL_RIGHT,
+} ScrollDir;
+
+typedef enum {
+    BULLET_INVALID = 0b0,
+    BULLET_UP = 0b0001,
+    BULLET_LEFT = 0b0010,
+    BULLET_RIGHT = 0b0100,
+    BULLET_DOWN = 0b1000,
+} BulletDir;
+
 struct {
     u16 x;
     u16 y;
     // TODO: health
     // TODO: lightfulness ?
+    PlayerDir dir;
 } player = {0};
 
 typedef struct {
@@ -33,7 +65,7 @@ Monster monsters[50] = {0};
 u8 monstersLen = 0;
 
 typedef enum {
-    INVALID_ROOM,
+    INVALID_ROOM = 0,
 
     DEFAULT_ROOM,
     DOOR_ROOM
@@ -60,19 +92,31 @@ Room rooms[10][10] = {0};
 u8 currentRoomX = STARTING_ROOM_X;
 u8 currentRoomY = STARTING_ROOM_Y;
 
-
-typedef enum {
-    SCROLL_UP,
-    SCROLL_LEFT,
-    SCROLL_DOWN,
-    SCROLL_RIGHT,
-} ScrollDir;
+struct {
+    u16 x;
+    u16 y;
+    BulletDir dir;
+} playerBullets[10];
+u8 playerBulletsLen = 0;
 
 void DMA3Copy(volatile const void *dest, volatile const void *src, u16 size) {
     REG_DMA3SAD = src;
     REG_DMA3DAD = dest;
     REG_DMA3CNT_L = size;
     REG_DMA3CNT_H = BIT10 | BIT15;
+}
+
+void updateBullets() {
+    for (int i = 0; i < playerBulletsLen; i++) {
+        if (playerBullets[i].dir & BULLET_UP) {
+        }
+        if (playerBullets[i].dir & BULLET_LEFT) {
+        }
+        if (playerBullets[i].dir & BULLET_DOWN) {
+        }
+        if (playerBullets[i].dir & BULLET_RIGHT) {
+        }
+    }
 }
 
 void updateMonsters() {
@@ -103,33 +147,48 @@ void changeRoom(Room r) {
     // change monsters
     monstersLen = r.monsterSpawnsLen;
     for (u8 i = 0; i < monstersLen; i++) {
-        Monster m = {.x = r.monsterSpawns[i].x, .y = r.monsterSpawns[i].y, .health = 10}; // TODO: remove hardcoded health
+        Monster m = {.x = INTTOFP(r.monsterSpawns[i].x), .y = INTTOFP(r.monsterSpawns[i].y), .health = 10}; // TODO: remove hardcoded health
         monsters[i] = m;
+
+        // TODO: switch on monster type
+        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
+
+        OAM_ATTRIBS[5 + i*4] = BIT14;
+        OAM_ATTRIBS[6 + i*4] = BIT00 | BIT02 | BIT12;
     }
 
     // TODO: change itens
     // TODO: change light sources
 }
 
-void scroll(ScrollDir dir) {
+bool scroll(ScrollDir dir) {
     switch (dir) {
         case SCROLL_UP:
-            if (rooms[currentRoomX][currentRoomY-1].type != INVALID_ROOM) currentRoomY--;
-            else return;
+            if (rooms[currentRoomY-1][currentRoomX].type != INVALID_ROOM) currentRoomY--;
+            else return false;
             break;
         case SCROLL_LEFT:
-            if (rooms[currentRoomX-1][currentRoomY].type != INVALID_ROOM) currentRoomX--;
-            else return;
+            if (rooms[currentRoomY][currentRoomX-1].type != INVALID_ROOM) currentRoomX--;
+            else return false;
             break;
         case SCROLL_DOWN:
-            if (rooms[currentRoomX][currentRoomY+1].type != INVALID_ROOM) currentRoomY++;
-            else return;
+            if (rooms[currentRoomY+1][currentRoomX].type != INVALID_ROOM) currentRoomY++;
+            else return false;
             break;
         case SCROLL_RIGHT:
-            if (rooms[currentRoomX+1][currentRoomY].type != INVALID_ROOM) currentRoomX++;
-            else return;
+            if (rooms[currentRoomY][currentRoomX+1].type != INVALID_ROOM) currentRoomX++;
+            else return false;
             break;
+        default:
+            assert(false);
     }
+
+    for (u8 i = 0; i < monstersLen; i++) {
+        OAM_ATTRIBS[5 + i*4] = 0;
+        OAM_ATTRIBS[6 + i*4] = 0;
+    }
+    monstersLen = 0;
 
     u16 tilesLen, mapLen, palLen;
 
@@ -248,28 +307,30 @@ void scroll(ScrollDir dir) {
         REG_BG1VOFS = 0;
     }
 
-    changeRoom(rooms[currentRoomX][currentRoomY]);
+    changeRoom(rooms[currentRoomY][currentRoomX]);
+
+    return true;
 }
 
 void generateRooms() {
     {
         Room r = { DEFAULT_ROOM, {{80, 50}, {80, 120}}, 2 };
-        rooms[STARTING_ROOM_X][STARTING_ROOM_Y] = r;
+        rooms[STARTING_ROOM_Y][STARTING_ROOM_X] = r;
     }
 
     {
         Room r = { DEFAULT_ROOM, {{40, 20}, {80, 120}}, 2 };
-        rooms[STARTING_ROOM_X+1][STARTING_ROOM_Y] = r;
+        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{80, 10}, {80, 10}}, 2 };
-        rooms[STARTING_ROOM_X][STARTING_ROOM_Y+1] = r;
+        Room r = { DEFAULT_ROOM, {{80, 10}, {180, 10}}, 2 };
+        rooms[STARTING_ROOM_Y][STARTING_ROOM_X+1] = r;
     }
 
     {
-        Room r = { DEFAULT_ROOM, {{100, 120}}, 1 };
-        rooms[STARTING_ROOM_X+1][STARTING_ROOM_Y+1] = r;
+        Room r = { DEFAULT_ROOM, {{100, 120}, {20, 20}, {70, 130}}, 3 };
+        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X+1] = r;
     }
 };
 
@@ -279,24 +340,12 @@ int main() {
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
 
-    monsters[0].x = INTTOFP(50);
-    monsters[0].y = INTTOFP(50);
-    monsters[0].health = 10; // TODO: remove hardcoded health
-    monstersLen = 1;
-
     { //Ball
         DMA3Copy(OBJ_TILE_VRAM + 32*1, ballTiles, ballTilesLen/4);
         DMA3Copy(OBJ_PALETTE_POINTER, ballPal, ballPalLen/4);
 
         OAM_ATTRIBS[1] = BIT14;
         OAM_ATTRIBS[2] = BIT00;
-    }
-    { //Enemy
-        DMA3Copy(OBJ_TILE_VRAM + 32*5, enemyTiles, enemyTilesLen/4);
-        DMA3Copy(OBJ_PALETTE_POINTER + 32, enemyPal, enemyPalLen/4);
-
-        OAM_ATTRIBS[5] = BIT14;
-        OAM_ATTRIBS[6] = BIT00 | BIT02 | BIT12;
     }
     { //Room
         DMA3Copy(BG_TILE_VRAM_BASE0, roomTiles, roomTilesLen/4);
@@ -305,40 +354,86 @@ int main() {
 
         REG_BG0CNT = BIT09 | BIT11 | BIT14 | BIT15;
     }
+    { //Bullet
+        DMA3Copy(OBJ_TILE_VRAM + 32*9, bulletTiles, bulletTilesLen/4);
+        DMA3Copy(OBJ_PALETTE_POINTER + 64, bulletPal, bulletPalLen/4);
+    }
 
     generateRooms();
 
     changeRoom(rooms[STARTING_ROOM_X][STARTING_ROOM_Y]);
 
     while(1) {
-        if (~REG_KEYPAD & KEYPAD_UP) {
-            player.y -= PLAYER_SPEED;
-        }
-        if (~REG_KEYPAD & KEYPAD_LEFT) {
-            player.x -= PLAYER_SPEED;
-        }
-        if (~REG_KEYPAD & KEYPAD_DOWN) {
-            player.y += PLAYER_SPEED;
-        }
-        if (~REG_KEYPAD & KEYPAD_RIGHT) {
-            player.x += PLAYER_SPEED;
+        {
+            BulletDir dir = BULLET_INVALID;
+            if (~REG_KEYPAD & KEYPAD_UP) {
+                player.y -= PLAYER_SPEED;
+                player.dir = DIR_UP;
+                dir |= BULLET_UP;
+            }
+            if (~REG_KEYPAD & KEYPAD_LEFT) {
+                player.x -= PLAYER_SPEED;
+                player.dir = DIR_LEFT;
+                dir |= BULLET_LEFT;
+            }
+            if (~REG_KEYPAD & KEYPAD_DOWN) {
+                player.y += PLAYER_SPEED;
+                player.dir = DIR_DOWN;
+                dir |= BULLET_DOWN;
+            }
+            if (~REG_KEYPAD & KEYPAD_RIGHT) {
+                player.x += PLAYER_SPEED;
+                player.dir = DIR_RIGHT;
+                dir |= BULLET_RIGHT;
+            }
+            if (~REG_KEYPAD & BUTTON_A) {
+                playerBullets[playerBulletsLen].x = player.x;
+                playerBullets[playerBulletsLen].y = player.y;
+                playerBullets[playerBulletsLen].dir = dir;
+
+                playerBulletsLen++;
+            }
         }
 
         updateMonsters();
+        updateBullets();
 
+        // VBLANK BARRIER
         while(!(REG_DISPSTAT & BIT00)); //Wait VBlank migue
+        // ACTIVATE
 
-        if (FPTOINT(player.x) == 0) {
-            scroll(SCROLL_LEFT);
+        if (FPTOINT(player.x) <= FPTOINT(PLAYER_SPEED)) {
+            if (!scroll(SCROLL_LEFT)) player.x += PLAYER_SPEED;
         }
-        else if (FPTOINT(player.x) == 240-16) {
-            scroll(SCROLL_RIGHT);
+        if (FPTOINT(player.x) >= (240-16-FPTOINT(PLAYER_SPEED))) {
+            if (!scroll(SCROLL_RIGHT)) player.x -= PLAYER_SPEED;
         }
-        else if (FPTOINT(player.y) == 0) {
-            scroll(SCROLL_UP);
+        if (FPTOINT(player.y) <= FPTOINT(PLAYER_SPEED)) {
+            if (!scroll(SCROLL_UP)) player.y += PLAYER_SPEED;
         }
-        else if (FPTOINT(player.y) == 160-16) {
-            scroll(SCROLL_DOWN);
+        if (FPTOINT(player.y) >= (160-16-FPTOINT(PLAYER_SPEED))) {
+            if (!scroll(SCROLL_DOWN)) player.y -= PLAYER_SPEED;
+        }
+
+        switch (player.dir) {
+            case DIR_UP:
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_trasTiles, larry_trasTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, larry_trasPal, larry_trasPalLen/4);
+                break;
+            case DIR_LEFT:
+                OAM_ATTRIBS[1] |= BIT12;
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_ladoTiles, larry_ladoTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, larry_ladoPal, larry_ladoPalLen/4);
+                break;
+            case DIR_DOWN:
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_frenteTiles, larry_frenteTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, larry_frentePal, larry_frentePalLen/4);
+                break;
+            case DIR_RIGHT:
+                OAM_ATTRIBS[1] &= ~BIT12;
+                DMA3Copy(OBJ_TILE_VRAM + 32*1, larry_ladoTiles, larry_ladoTilesLen/4);
+                DMA3Copy(OBJ_PALETTE_POINTER, larry_ladoPal, larry_ladoPalLen/4);
+                break;
         }
 
         //TODO: Truncate player x and y
@@ -348,6 +443,12 @@ int main() {
         for (int i = 0; i < monstersLen; i++) {
             OAM_ATTRIBS[4 + i*4] = (OAM_ATTRIBS[4 + i*4] & 0b1111111100000000) | FPTOINT(monsters[i].y);
             OAM_ATTRIBS[5 + i*4] = (OAM_ATTRIBS[5 + i*4] & 0b1111111000000000) | FPTOINT(monsters[i].x);
+        }
+
+        for (int i = 0; i < playerBulletsLen; i++) {
+            OAM_ATTRIBS[320 + i*4] = FPTOINT(playerBullets[i].y);
+            OAM_ATTRIBS[321 + i*4] = FPTOINT(playerBullets[i].x);
+            OAM_ATTRIBS[322 + i*4] = BIT00 | BIT03 | BIT13;
         }
 
         while(REG_DISPSTAT & BIT00); //Wait VBlank end migue
