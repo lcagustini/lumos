@@ -37,7 +37,7 @@ typedef signed long s32;
 typedef unsigned char byte;
 typedef unsigned short hword;
 typedef unsigned long word;
-typedef void (*fp)(void);   //this is the definition you will find in gba.h.  It is just delaring fp to represent a pointer to a function
+typedef void (*fp)(void);
 
 
 /////////////////Bits////////////////

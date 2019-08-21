@@ -160,7 +160,7 @@ typedef struct {
 
 typedef struct {
     RoomType type;
-    SpawnLoc monsterSpawns[5];
+    SpawnLoc monsterSpawns[10];
     u8 monsterSpawnsLen;
     Light lightSources[4];
     u8 lightSourcesLen;
@@ -645,8 +645,6 @@ bool scroll(ScrollDir dir, bool force) {
     u16 tilesLen, mapLen, palLen;
 
     switch (rooms[currentRoomX][currentRoomY].type) {
-        case INVALID_ROOM:
-            assert(false);
         case BK_1:
             {
                 tilesLen = bk_1TilesLen/4;
@@ -827,8 +825,8 @@ bool scroll(ScrollDir dir, bool force) {
                 REG_BG1CNT = BIT00 | BIT01 | BIT02 | BIT08 | BIT12 | BIT14 | BIT15;
             }
             break;
-        default:
-            assert(false);
+        //default:
+            //assert(false);
     }
 
     u16 scroll;
@@ -1057,23 +1055,153 @@ bool scroll(ScrollDir dir, bool force) {
 
 void generateRooms() {
     {
-        Room r = { BK_4, {}, 0, {{30, 25, 1}, {60, 98, 1}, {160, 40, 1}, {100, 63, 1}}, 4 };
+        Room r = { BK_3, {}, 0, {{30, 25, 1}, {60, 98, 1}, {160, 40, 1}, {100, 63, 1}}, 4 };
         rooms[STARTING_ROOM_Y][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { BK_2, {{200, 100}}, 1, {{167, 73, 1}, {57, 131, 1}, {22, 113, 1}}, 3, .monsterType = BIG_SPIDER};
+        Room r = { BK_3, {{200, 100}}, 1, {{167, 73, 1}, {57, 131, 1}, {22, 113, 1}}, 3 };
         rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X] = r;
     }
 
     {
-        Room r = { BK_1, {{181, 58}, {108, 21}}, 2, {{74, 25, 1}}, 1, .monsterType = ARAGOG};
-        rooms[STARTING_ROOM_Y][STARTING_ROOM_X+1] = r;
+        Room r = { BK_3, {{181, 58}, {108, 21}}, 2, {{74, 25, 1}}, 1 };
+        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X+1] = r;
     }
 
     {
-        Room r = { BK_3, {{123, 129}, {169, 70}, {200, 60}, {87, 102}}, 4, {{76, 132, 1}, {20, 90, 1}}, 2, .monsterType = DEMENTOR};
-        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X+1] = r;
+        Room r = { BK_2, {{123, 129}, {169, 70}}, 2, {{76, 132, 1}}, 1 };
+        rooms[STARTING_ROOM_Y+2][STARTING_ROOM_X+1] = r;
+    }
+
+    {
+        Room r = { BK_3, {{155, 75}, {220, 112}, {64, 101}, {39, 129}}, 4, {{136, 135, 1}, {99, 32, 1}, {76, 59, 1}}, 3 };
+        rooms[STARTING_ROOM_Y+3][STARTING_ROOM_X+1] = r;
+    }
+
+    {
+        Room r = { BK_5, {{148, 138}, {196, 88}, {220, 124}}, 3, {{97, 40, 1}, {163, 121, 1}}, 2 };
+        rooms[STARTING_ROOM_Y+4][STARTING_ROOM_X+1] = r;
+    }
+
+    {
+        Room r = { BK_2, {{148, 138}}, 1 , {{97, 40, 1}, {76, 17, 1}, {42, 99, 1}, {130, 47, 1}}, 4 };
+        rooms[STARTING_ROOM_Y+4][STARTING_ROOM_X+2] = r;
+    }
+
+    {
+        Room r = { BK_4, {{218, 63}, {59, 97}, {204, 73}, {132, 107}, {40, 87}, {181, 29}}, 6 , {{124, 60, 1}, {77, 41, 1}}, 2 };
+        rooms[STARTING_ROOM_Y+4][STARTING_ROOM_X+3] = r;
+    }
+
+    {
+        Room r = { BK_5, {}, 0 , {{108, 35, 1}, {56, 71, 1}}, 2 };
+        rooms[STARTING_ROOM_Y+4][STARTING_ROOM_X+4] = r;
+    }
+
+    {
+        Room r = { BK_3, {{121, 78},{195, 62}}, 2 , {{171, 146, 1}, {30, 163, 1}}, 2 };
+        rooms[STARTING_ROOM_Y-1][STARTING_ROOM_X] = r;
+    }
+
+    {
+        Room r = { BK_3, {{151, 40},{129, 108}}, 2 , {{206, 65, 1}, {151, 52, 1}}, 2 };
+        rooms[STARTING_ROOM_Y-1][STARTING_ROOM_X-1] = r;
+    }
+
+    {
+        Room r = { BK_3, {{151, 40},{129, 108}}, 2 , {{206, 65, 1}, {151, 52, 1}}, 2 };
+        rooms[STARTING_ROOM_Y-1][STARTING_ROOM_X-2] = r;
+    }
+
+    {
+        Room r = { BK_3, {{55, 113}, {68, 141}, {201, 102}}, 3 , {{206, 76, 1}}, 1 };
+        rooms[STARTING_ROOM_Y-2][STARTING_ROOM_X-1] = r;
+    }
+
+    {
+        Room r = { BK_3, {{140, 125}, {214, 64}, {183, 137}, {205, 150}},  4 , {{69, 44, 1}, {48, 115, 1},{82, 76, 1}}, 3 };
+        rooms[STARTING_ROOM_Y-2][STARTING_ROOM_X-2] = r;
+    }
+
+    {
+        Room r = { BK_1, {{211, 74}, {76, 135}, {42, 203}, {69, 112}, {113, 124}}, 5, {{34, 17, 1}, {108, 40, 1}}, 2 };
+        rooms[STARTING_ROOM_Y-3][STARTING_ROOM_X-2] = r;
+    }
+
+    {
+        Room r = { BK_5, {}, 0, {{44, 66, 1}, {224, 101, 1}, {197, 112, 1}, {84, 121, 1}}, 4 };
+        rooms[STARTING_ROOM_Y-3][STARTING_ROOM_X-3] = r;
+    }
+
+    {
+        Room r = { BK_3, {{49, 142}}, 1, {{222, 23, 1}, {194, 101, 1}, {34, 67, 1}, {142, 25, 1}}, 4 };
+        rooms[STARTING_ROOM_Y-1][STARTING_ROOM_X+1] = r;
+    }
+
+    {
+        Room r = { BK_4, {{22, 42}, {142, 110}, {174, 107}, {131, 85}}, 4, {{126, 35, 1}, {191, 75, 1}, {61, 47, 1}}, 3 };
+        rooms[STARTING_ROOM_Y-1][STARTING_ROOM_X+2] = r;
+    }
+
+    {
+        Room r = { BK_3, {}, 0, {{126, 35, 1}, {191, 75, 1}, {43, 66, 1}, {82, 19, 1}}, 4 };
+        rooms[STARTING_ROOM_Y-2][STARTING_ROOM_X+2] = r;
+    }
+
+    {
+        Room r = { BK_3, {{65,45}}, 1, {{31, 40, 1}, {184, 63, 1}, {61, 59, 1}}, 3};
+        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X-1] = r;
+    }
+
+    {
+        Room r = { BK_3, {{166, 38}, {210, 115}}, 2, {{178, 31, 1}, {184, 63, 1}}, 2};
+        rooms[STARTING_ROOM_Y+2][STARTING_ROOM_X-1] = r;
+    }
+
+    {
+        Room r = { BK_3, {{33, 19}, {149, 18}, {117, 45}}, 3, {{145, 114, 1}}, 1};
+        rooms[STARTING_ROOM_Y+2][STARTING_ROOM_X-2] = r;
+    }
+
+    {
+        Room r = { BK_2, {{61, 33}, {133, 92}}, 2, {{202, 46, 1}, {151, 79, 1}}, 2};
+        rooms[STARTING_ROOM_Y+3][STARTING_ROOM_X-2] = r;
+    }
+
+    {
+        Room r = { BK_2, {{191, 22}, {171, 33}}, 2, {{188, 91, 1}, {66, 70, 1}}, 2};
+        rooms[STARTING_ROOM_Y+3][STARTING_ROOM_X-3] = r;
+    }
+
+    {
+        Room r = { BK_1, {{74, 47}, {221, 45}, {52, 105}, {98, 118}}, 4, {{117, 66, 1}}, 1};
+        rooms[STARTING_ROOM_Y+3][STARTING_ROOM_X-4] = r;
+    }
+
+    {
+        Room r = { BK_5, {{47, 74}, {52, 45}, {221, 105}, {118, 98}}, 4, {{66, 117, 1}}, 1};
+        rooms[STARTING_ROOM_Y+2][STARTING_ROOM_X-4] = r;
+    }
+
+    {
+        Room r = { BK_4, {{221, 74}, {105, 74}, {52, 98}, {30, 117}}, 4, {{42, 115, 1}}, 1};
+        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X-4] = r;
+    }
+
+    {
+        Room r = { BK_5, {{86, 129}, {162, 71}, {145, 53}}, 3, {{196, 52, 1}, {86, 92, 1}, {50, 102, 1}}, 3};
+        rooms[STARTING_ROOM_Y+1][STARTING_ROOM_X-5] = r;
+    }
+
+    {
+        Room r = { BK_3, {}, 0, {{42, 115, 1}, {118, 98, 1}, {52, 45, 1}}, 3};
+        rooms[STARTING_ROOM_Y][STARTING_ROOM_X-5] = r;
+    }
+
+    {
+        Room r = { BK_4, {{47, 24}, {210, 27}, {19, 47}, {61, 73}}, 4, {{81, 74, 1}, {91, 105, 1}, {97, 49, 1}}, 3};
+        rooms[STARTING_ROOM_Y+5][STARTING_ROOM_X-2] = r;
     }
 };
 
@@ -1113,7 +1241,7 @@ reset_game:
     }
 
 
-    REG_DISPCNT = BIT06 | BIT07 | BIT08 | BIT09 | BIT10 | BIT11 | BIT12; //Mode 0 + BG0-3 + OBJ + 1D OBJ Mapping
+    REG_DISPCNT = BIT06 | BIT08 | BIT09 | BIT10 | BIT11 | BIT12; //Mode 0 + BG0-3 + OBJ + 1D OBJ Mapping
 
     player.x = INTTOFP(10);
     player.y = INTTOFP(10);
@@ -1226,6 +1354,7 @@ reset_game:
     generateRooms();
 
     //changeRoom(rooms[STARTING_ROOM_X][STARTING_ROOM_Y]);
+    REG_DISPCNT |= BIT07;
     scroll(SCROLL_RIGHT, true);
     REG_DISPCNT &= ~BIT07;
 
@@ -1654,3 +1783,4 @@ reset_game:
 
     return 0;
 }
+
