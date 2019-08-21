@@ -1,5 +1,6 @@
 # Lumos
 This a GBA game made in 24 hours during Meeting Jam 2019 at Unicamp.  
+
 The game portraits Larry Foster, Ronaldo and Lorraine on their quest through a dark maze, where they need to drain light from candles to gain power, however this makes the mazer even darker...
 
 The game was developed entirely in C and spaghetti.  
